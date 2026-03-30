@@ -1,0 +1,22 @@
+---
+description: Seguridad: inyección, mass assignment, datos sensibles y autorización
+alwaysApply: true
+---
+
+# Seguridad
+
+## Inyección SQL
+
+- No concatenar input del usuario (request, query params) en SQL. Usar query builder o Eloquent con binding.
+- Si se usa `DB::raw()` o `whereRaw()`, pasar parámetros enlazados (placeholders `?` o bindings nombrados), nunca interpolados en el string.
+
+## Mass assignment
+
+- Usar `$fillable` (o `$guarded` explícito) en modelos. No incluir en `$fillable` campos que deban fijarse solo en servidor (ej. `is_admin`, `role`, `user_id` cuando deba venir del auth).
+- Validar y autorizar en Form Request antes de crear/actualizar; el Command o el UseCase reciben datos ya validados. No confiar en que el cliente envíe solo campos permitidos sin validación.
+
+## Datos sensibles
+
+- No loguear contraseñas, tokens, o PII innecesario. En respuestas API, no exponer campos internos sensibles (tokens, hashes) salvo que sea estrictamente necesario y esté documentado.
+- Usar Resources para definir la forma de salida; excluir de `toArray()`/`resolve()` cualquier dato que no deba verse en la API.
+

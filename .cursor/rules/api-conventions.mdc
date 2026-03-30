@@ -1,0 +1,53 @@
+---
+description: Convenciones de nombres en API (request/response) y uso del trait ApiResponse
+globs: "**/Http/**/*.php,**/Resources/**/*.php"
+alwaysApply: false
+---
+
+# Convenciones API
+
+## Respuestas: trait ApiResponse (obligatorio)
+
+Las respuestas HTTP de la API deben construirse **exclusivamente** con los métodos del trait `MMT\ApiResponseNormalizer\ApiResponse`. Los controladores que devuelven JSON deben usar `use ApiResponse` y no devolver nunca `response()->json()` ni `new JsonResponse()` directamente.
+
+Métodos disponibles:
+
+- **success($data, $message, $meta, $code, $paginator, $filters)** — éxito (200 por defecto).
+- **created($data, $message)** — recurso creado (201).
+- **accepted($data, $message)** — aceptado para procesamiento (202).
+- **noContent()** — éxito sin cuerpo (204).
+- **validationError($errors, $message)** — errores de validación (422).
+- **unauthorized($message)** — no autorizado (401).
+- **error($message, $errorCode, $details, $status)** — error genérico (status por defecto 400).
+
+Elegir el método que corresponda al código HTTP y al tipo de payload; no inventar respuestas ad hoc.
+
+---
+
+# Convenciones de nombres
+
+## Resumen
+
+- **Uso interno (PHP)**: `camelCase` en propiedades, variables, parámetros y nombres de métodos.
+- **Respuesta de la API (JSON)**: claves en **snake_case** (ej. `event_name`, `created_at`, `schema_version`).
+- **Base de datos y modelos**: columnas y atributos Eloquent en **snake_case** (convención Laravel).
+
+## Request (entrada)
+
+- Query params y body de la API en **snake_case** (ej. `event_name`, `per_page`, `schema_version`). Los Form Request validan con esas claves; el Command puede mapear a propiedades camelCase internamente.
+
+## Response (salida)
+
+- En **API Resources** (`toArray()`): devolver el array con **claves en snake_case** para que el JSON de la respuesta sea consistente.
+- Ejemplo: `'event_name' => $this->event_name`, `'created_at' => $this->created_at?->toIso8601String()`, no `eventName` ni `createdAt` en el JSON final.
+- Metadatos de paginación, filtros o envelopes que devuelva `ApiResponse`/normalizer: igualmente claves en snake_case en el JSON.
+
+## Uso interno
+
+- En PHP (UseCases, Commands, modelos como objetos): propiedades y variables en **camelCase** cuando sea código propio; los atributos de Eloquent siguen en snake_case porque reflejan la BD. Al exponer a la API, el Resource traduce a snake_case en el array de salida.
+
+## Parámetros de ruta (URL)
+
+- Los IDs de los modelos son UUID. En las rutas debe usarse la **entidad + Uuid** como nombre del parámetro.
+- Ejemplos: `users/{userUuid}`, `journeys/{journeyUuid}`, `segments/{segmentUuid}`.
+- El controlador recibe el parámetro con ese nombre (ej. `string $journeyUuid`) y lo pasa al Command como valor; el Command puede seguir usando internamente `journeyId` para el valor del UUID.

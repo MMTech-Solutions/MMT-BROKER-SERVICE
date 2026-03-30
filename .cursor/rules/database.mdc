@@ -1,0 +1,33 @@
+---
+description: Convenciones de capa de datos, Eloquent y consultas
+alwaysApply: true
+---
+
+# Base de datos
+
+## Modelos
+
+- Los modelos viven en `App\Features\<Feature>\Models\` (ver arquitectura). Un modelo por entidad del feature.
+- Usar `$fillable` (o `$guarded` de forma explícita); no dejar modelos totalmente asignables.
+- Definir `$casts` para fechas, JSON, booleanos y tipos que deban serializarse.
+- Relaciones: declarar en el modelo; nombrar de forma clara (`belongsTo`, `hasMany`, etc.). No cargar relaciones “por si acaso” en el modelo (el eager loading se decide en repositorio/use case).
+- Tabla: usar convención Laravel (`snake_plural` del nombre de clase) o `protected $table` si el nombre es distinto.
+
+## Evitar N+1
+
+- Al devolver listados o entidades con relaciones usadas en la respuesta o en lógica posterior, cargar relaciones con `with()` en la consulta del repositorio.
+- Ejemplo: si el listado de event definitions usa una relación, en el repositorio usar `EventDefinition::query()->with('relacion')->...` en lugar de cargar después en un bucle.
+- En recorridos sobre colecciones que acceden a relaciones, usar `$collection->load('relacion')` o `loadMissing()` si ya puede estar cargada.
+- Revisar que los Resources (API) no disparen accesos a relaciones no eager-loaded.
+
+## Repositorios y consultas
+
+- El acceso a datos se hace a través de repositorios (interfaces en `Repositories/Contracts/`, implementaciones en `Repositories/`). Los UseCases y Services no inyectan la interfaz del repositorio: inyectan la Factory correspondiente (ej. `EventDefinitionFactory`) y obtienen el repositorio con `$factory->make()`, que devuelve la implementación vía `app(ConcreteRepository::class)`. No usar el modelo Eloquent directo fuera del repositorio.
+- Consultas complejas (filtros, joins, paginación) van en el repositorio; el UseCase orquesta y no construye queries.
+- Si se usa `DB::raw()` o `whereRaw()`, bindear parámetros (placeholders `?` o named bindings). No concatenar input del usuario en SQL crudo.
+
+## Migraciones
+
+- Nombre: `create_<tabla>_table`, `add_<columna>_to_<tabla>_table`, etc.
+- Mantener migraciones reversibles (`down()` que deshace el `up()`). Evitar lógica de negocio compleja; solo cambios de esquema y datos mínimos necesarios (seeds para datos de dominio).
+- Índices: añadir en migraciones cuando haya búsquedas/filtros por columna (ej. `user_id`, `occurred_at`, `event_name`). Considerar índices compuestos para consultas frecuentes.

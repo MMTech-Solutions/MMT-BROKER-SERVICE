@@ -1,0 +1,88 @@
+---
+description: Arquitectura feature-first del proyecto Laravel
+alwaysApply: true
+---
+
+# Arquitectura feature-first
+
+El proyecto sigue **feature-first**: cada capacidad de negocio vive bajo `app/Features/<FeatureName>/`. No se organiza por capa técnica global (todos los controllers juntos), sino por feature.
+
+## Estructura de un feature
+
+Cada feature debe respetar esta estructura de carpetas y namespaces:
+
+```
+app/Features/<FeatureName>/
+├── Http/V1/                    # Capa HTTP (versión explícita)
+│   ├── Controllers/            # Controladores (invocables)
+│   ├── Commands/               # DTOs de entrada (mapeo desde Request)
+│   ├── Requests/               # Form Requests de Laravel
+│   └── Resources/              # API Resources (salida JSON)
+├── UseCases/                   # Casos de uso (orquestación)
+├── Repositories/               # Implementaciones de persistencia
+│   └── Contracts/              # Interfaces de repositorios
+├── Models/                     # Modelos Eloquent del feature
+├── Exceptions/                 # Excepciones de dominio
+├── Factories/                  # Factories (repos, drivers, etc.)
+├── Services/                   # Servicios internos (opcional)
+└── Jobs/                       # Jobs de cola (opcional)
+```
+
+- **Namespace**: `App\Features\<FeatureName>\<Capa>\...` (ej. `App\Features\Events\UseCases\ListEventDefinitionsUseCase`).
+- **Shared**: Código transversal va en `app/Shared/` (ej. `App\Shared\Support\ActionResult`).
+- **Providers**: Si un feature necesita binding/registros propios, usar `app/Providers/<Feature>Provider.php` y registrarlo en `bootstrap/providers.php`.
+
+## Comunicación entre features
+
+Un feature **no** debe inyectar directamente **factories**, **repositorios** ni **modelos** de otro feature. Eso acopla fronteras y rompe el aislamiento del dominio.
+
+Si un feature necesita datos o comportamiento de otro, el feature **proveedor** expone un **servicio especializado** en su carpeta `Services/` (ej. `App\Features\Events\Services\EventDefinitionPayloadService`). El feature **consumidor** inyecta únicamente ese servicio.
+
+- El servicio puede usar internamente factories y repositorios de su propio feature.
+- Los **UseCases** del consumidor dependen del servicio público, no de `EventDefinitionFactory` ni de repositorios ajenos.
+
+## Flujo de una petición HTTP
+
+1. **Request** → **Controller** recibe un `Form Request` y lo convierte en un **Command** (método estático `Command::fromRequest($request)`).
+2. **Controller** inyecta el **UseCase** y llama `$useCase->execute($command)`.
+3. **UseCase** orquesta repositorios, factories y servicios; no contiene lógica HTTP.
+4. **Controller** transforma el resultado con **Resource** (o `Resource::collection`) y devuelve la respuesta (ej. con `ApiResponse::success`).
+
+Ejemplo de cadena: `ListEventDefinitionsRequest` → `ListEventDefinitionsCommand::fromRequest()` → `ListEventDefinitionsUseCase::execute($command)` → repositorio obtenido vía factory → `EventDefinitionResource::collection()`.
+
+## Convenciones por capa
+
+- **Controllers**: Clase invocable (`__invoke`), inyección del UseCase y del Request. Sin lógica de negocio; solo Command → UseCase → Resource.
+  - **Naming**:
+    - Listado de colección: `List<RecursoPlural>Controller` (ej. `ListCategoriesController`, `ListNotificationRulesController`).
+    - Creación: `Store<RecursoSingular>Controller` (ej. `StoreCategoryController`, `StoreNotificationRuleController`).
+    - Detalle: `Show<RecursoSingular>Controller`.
+    - Actualización parcial/total: `Update<RecursoSingular>Controller`.
+    - Borrado: `Delete<RecursoSingular>Controller`.
+
+## Excepciones en controladores
+
+- **No usar try-catch** en los controladores para capturar excepciones de negocio o dominio (404, 409, etc.). El controlador debe quedar limpio: crear Command, ejecutar UseCase, devolver respuesta de éxito.
+- Los **errores se expresan con excepciones** que extienden `MmtException` (o la base del proyecto). Esas excepciones tienen un método `render` que permite al exception handler de Laravel devolver una respuesta JSON con el código HTTP adecuado.
+- El **repositorio o use case** debe lanzar excepciones de dominio (ej. `JourneyNotFoundException`, `JourneyHasEnrollmentsException`) cuando corresponda; el controlador **no** las captura ni devuelve `response()->json()` manualmente.
+- Así cualquier excepción que llegue al controlador será capturada por el handler y se devolverá la respuesta JSON correspondiente; el controlador solo orquesta el flujo feliz (Command → Execute → Success).
+- **Commands**: Objetos de datos con constructor y `static fromRequest(Request $request): self`. Un command por acción (List, Store, etc.).
+- **UseCases**: Un método `execute(Command $command)` (o parámetros equivalentes). Dependen de Factories (repositorios del **mismo** feature), servicios internos y, cuando haga falta, **servicios especializados** de otros features (ver «Comunicación entre features»). No de Http. No inyectar interfaces de repositorio directamente.
+- **Repositories**: Implementan interfaces en `Repositories/Contracts/`. Las interfaces definen el contrato; las implementaciones viven en `Repositories/`. No se inyectan por interfaz: se accede siempre vía Factory (ver abajo).
+  - **Naming**: el contrato usa sufijo `Interface` (ej. `UserRepositoryInterface`) y la implementación concreta elimina el sufijo (ej. `UserRepository`).
+- **Repository Factory**: Por cada repositorio existe una Factory en `Factories/` (ej. `EventDefinitionFactory`). UseCases, Services y Jobs inyectan la Factory, no la interfaz del repositorio. La Factory expone `make()` que devuelve la implementación del contrato usando el contenedor de Laravel: `return app(ConcreteRepository::class)`. Así el tipo de retorno de `make()` es la interfaz; la resolución concreta la hace el contenedor.
+- **Models**: Solo en `Features/<Feature>/Models/`. Relaciones y atributos del dominio de ese feature.
+- **Exceptions**: Excepciones de dominio en `Features/<Feature>/Exceptions/` (ej. `DuplicateEventDefinitionException`).
+
+## APIs y rutas
+
+- Rutas bajo `routes/api.php` con prefijo `v1`. Los controladores referenciados son los de `Http\V1\Controllers`.
+- Mantener un controlador por acción (single action / invocable) cuando tenga sentido.
+
+## Qué evitar
+
+- No poner lógica de negocio en Controllers; debe estar en UseCases o Services.
+- No inyectar interfaces de repositorio en UseCases, Services o Jobs; inyectar siempre la Factory y obtener el repositorio con `make()`.
+- No inyectar factories, repositorios ni modelos de **otro** feature; usar los **servicios especializados** que ese feature exponga en `Services/`.
+- No referenciar capa HTTP (Requests, Controllers) desde UseCases o Repositories.
+- No crear carpetas por capa a nivel de `app/` (ej. `app/Controllers` global); todo va dentro de cada feature en `app/Features/`.

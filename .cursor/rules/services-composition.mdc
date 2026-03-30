@@ -1,0 +1,25 @@
+---
+description: Composición sobre herencia y uso de Strategy solo cuando aplique (Services)
+globs: "**/Features/**/Services/**/*.php"
+alwaysApply: false
+---
+
+# Servicios: composición sobre herencia
+
+En la capa **Services** de cada feature, priorizar **composition over inheritance**.
+
+- **Composición**: el servicio recibe dependencias por constructor (otros servicios, factories, repos vía factory) y delega en ellas. No extiende una clase base para obtener comportamiento.
+- **Evitar herencia** para compartir lógica entre servicios: en lugar de `class MiServicio extends BaseServicio`, inyectar un colaborador que encapsule esa lógica y llamarlo desde el servicio.
+
+Ejemplo de preferencia: en lugar de heredar de `AbstractProcessor`, inyectar un `ProcessorInterface` (o similar) y usarlo dentro del servicio.
+
+## Strategy pattern solo cuando sea necesario
+
+Usar el **strategy pattern** (interfaz + varias implementaciones intercambiables) solo cuando se identifique una necesidad clara:
+
+- Existen **varias implementaciones** de un mismo comportamiento que deben ser **intercambiables** en tiempo de ejecución o configuración (ej. distintos canales de envío, distintos tipos de nodo en un flujo).
+- El código que usa el comportamiento **no debe depender** de la implementación concreta, sino del contrato (interfaz).
+
+No introducir estrategias “por si acaso” o por uniformidad: si hoy solo hay una forma de hacer algo y no se prevé intercambiarla, implementar la lógica directamente en el servicio o en un único colaborador inyectado, sin definir interfaz + estrategias.
+
+**Resumen**: composición siempre; strategy (interfaz + N implementaciones) solo cuando haya un conjunto de algoritmos/comportamientos intercambiables bien identificado.

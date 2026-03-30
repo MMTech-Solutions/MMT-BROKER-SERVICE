@@ -1,0 +1,35 @@
+---
+description: Convenciones de mensajes de commit en español
+alwaysApply: true
+---
+
+# Mensajes de commit
+
+Todos los mensajes de commit de git deben escribirse en **español**.
+
+## Reglas
+
+- Usar oraciones claras en español.
+- Preferir **modo imperativo** (ej. "agregar", "corregir", "simplificar"), no infinitivo ni pasado.
+- Seguir **conventional commits** cuando sea posible: `tipo: descripción breve` en la primera línea.
+
+## Tipos habituales
+
+- `feat:` — nueva funcionalidad
+- `fix:` — corrección de error
+- `refactor:` — refactor sin cambiar comportamiento
+- `docs:` — solo documentación
+- `test:` — pruebas
+- `chore:` — tareas de mantenimiento (deps, config, etc.)
+
+## Ejemplos
+
+```
+feat: agregar filtro por fecha en endpoint de logs
+fix: corregir error al parsear el parámetro date
+refactor: simplificar lógica de validación de logs
+docs: actualizar ROADMAP con estado de Fase 1
+chore: actualizar dependencias de composer
+```
+
+Al proponer o escribir mensajes de commit, aplicar siempre estas convenciones en español.

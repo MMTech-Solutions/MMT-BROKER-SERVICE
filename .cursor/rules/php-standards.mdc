@@ -1,0 +1,64 @@
+---
+description: Convenciones PHP y PSR-12
+globs: "**/*.php"
+alwaysApply: false
+---
+
+# Estándares PHP (PSR-12)
+
+El proyecto sigue **PSR-12** (Extended Coding Style). El formateo se aplica con **Laravel Pint** (`./vendor/bin/pint`); el código generado o editado debe ser coherente con estas reglas.
+
+## General
+
+- Codificación **UTF-8** sin BOM.
+- Un archivo PHP solo debe declarar símbolos (clases, interfaces, traits, funciones) o efectos secundarios (include, output), no mezclar ambos.
+- Línea en blanco final al final del archivo.
+
+## Indentación y líneas
+
+- **4 espacios** para la indentación; no usar tabs.
+- Líneas recomendadas **≤ 120 caracteres**; si se supera, partir en varias líneas con indentación clara.
+- Línea en blanco después de la declaración `namespace` y después del bloque de `use`; no más de una línea en blanco entre statements.
+
+## Declaraciones (classes, methods, functions)
+
+- Llave de apertura `{` en la **misma línea** para clases, métodos y funciones; llave de cierre `}` en nueva línea al final del cuerpo.
+- No hay espacio entre el nombre de la función/método y el paréntesis de apertura `(`.
+- Los argumentos y parámetros se alinean en una sola línea o, si se parten, uno por línea con indentación; la coma al final de la línea (trailing comma) cuando hay múltiples líneas.
+
+```php
+// Ejemplo: argumentos en varias líneas
+public function __construct(
+    private readonly EventDefinitionFactory $eventDefinitionFactory,
+    private readonly SomeOtherService $other,
+) {
+}
+```
+
+## Control structures (if, for, foreach, switch, while)
+
+- Un espacio después de la palabra clave (`if`, `for`, etc.); no espacio entre el paréntesis de cierre y la llave de apertura.
+- Llave de apertura `{` en la **misma línea**; llave de cierre `}` en nueva línea.
+- `elseif` / `else` en la misma línea que la llave de cierre del bloque anterior.
+
+## Naming
+
+- **Clases**: `PascalCase`.
+- **Métodos y funciones**: `camelCase`.
+- **Constantes de clase**: `UPPER_SNAKE_CASE`.
+- **Propiedades**: `camelCase` (o `$snake_case` si el proyecto lo usa de forma explícita; en Laravel suele ser `camelCase` para propiedades de clase).
+
+## use e imports
+
+- `use` al inicio del archivo, después de `namespace`, en orden alfabético por nombre completo (opcional pero habitual). Un símbolo por línea.
+- No usar `use function` o `use const` mezclados con `use` de clases sin una línea en blanco que separe los bloques (PSR-12).
+
+## Type declarations
+
+- Usar **type hints** en parámetros y tipos de retorno (PHP 8.2). Propiedades tipadas con `readonly` cuando proceda.
+- Nullable con `?Type` o `Type|null` según preferencia del proyecto; ser consistente.
+
+## Referencia
+
+- PSR-12: <https://www.php-fig.org/psr/psr-12/>
+- Formateo automático: `./vendor/bin/pint` (Laravel Pint, presets PSR-12).
