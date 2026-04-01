@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('server_groups', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('platform_id')->constrained('platforms');
+            $table->foreignUuid('platform_setting_id')->constrained('platform_settings')->restrictOnDelete();
             $table->string('name');
             $table->string('description')->nullable();
             $table->string('meta_name')->comment('The name of the meta tag that contains the server group');

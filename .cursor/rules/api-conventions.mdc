@@ -6,9 +6,25 @@ alwaysApply: false
 
 # Convenciones API
 
+## Listados de recursos: paginación obligatoria
+
+- Los endpoints que exponen listados de recursos deben implementar **paginación por defecto**.
+- Solo se permite devolver listados completos sin paginar cuando esté **explícitamente solicitado y justificado** durante la planificación.
+- Usar `per_page` y `page` como parámetros estándar de paginación en query string.
+- En listados paginados, los filtros por query params deben contemplar como mínimo los mismos campos del endpoint de creación del recurso (ej. si se crea con `name`, `price`, `is_active`, el listado debe aceptar `?name=&price=&is_active`).
+
+## Método HTTP para actualización de recursos
+
+- En este proyecto, las actualizaciones de recursos en API deben implementarse **por defecto con `PATCH`**.
+- Se asume que la actualización será **parcial** en la mayoría de casos, incluso si se modifican varios campos.
+- `PUT` queda descartado como convención general.
+- `PUT` solo se usa cuando, durante la planificación, se define explícitamente que el endpoint requiere **reemplazo completo del recurso** (semántica full-replace).
+
 ## Respuestas: trait ApiResponse (obligatorio)
 
-Las respuestas HTTP de la API deben construirse **exclusivamente** con los métodos del trait `MMT\ApiResponseNormalizer\ApiResponse`. Los controladores que devuelven JSON deben usar `use ApiResponse` y no devolver nunca `response()->json()` ni `new JsonResponse()` directamente.
+El trait `ApiResponse` proviene del paquete Composer **`mmt/api-response-normalizer`** (namespace `MMT\ApiResponseNormalizer\ApiResponse`). Se instala como dependencia del proyecto y no es código propio del repositorio.
+
+Las respuestas HTTP de la API deben construirse **exclusivamente** con los métodos de ese trait. Los controladores que devuelven JSON deben importarlo con `use MMT\ApiResponseNormalizer\ApiResponse` y no devolver nunca `response()->json()` ni `new JsonResponse()` directamente.
 
 Métodos disponibles:
 
@@ -21,6 +37,10 @@ Métodos disponibles:
 - **error($message, $errorCode, $details, $status)** — error genérico (status por defecto 400).
 
 Elegir el método que corresponda al código HTTP y al tipo de payload; no inventar respuestas ad hoc.
+
+### Convención para DELETE
+
+- Los endpoints de borrado deben responder siempre con `noContent()` (HTTP 204) cuando la operación sea exitosa.
 
 ---
 

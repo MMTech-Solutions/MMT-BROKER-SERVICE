@@ -15,8 +15,8 @@ return new class extends Migration
             $table->string('password');
             $table->string('investor_password');
 
-            $table->foreignUuid('server_group_id')->constrained('server_groups');
-            $table->foreignUlid('leverage_id')->constrained('leverages');
+            $table->foreignUuid('server_group_id')->constrained('server_groups')->restrictOnDelete();
+            $table->foreignUuid('leverage_id')->constrained('leverages')->restrictOnDelete();
 
             $table->decimal('initial_deposit');
             $table->decimal('current_balance');

@@ -12,6 +12,16 @@ alwaysApply: true
 - Definir `$casts` para fechas, JSON, booleanos y tipos que deban serializarse.
 - Relaciones: declarar en el modelo; nombrar de forma clara (`belongsTo`, `hasMany`, etc.). No cargar relaciones “por si acaso” en el modelo (el eager loading se decide en repositorio/use case).
 - Tabla: usar convención Laravel (`snake_plural` del nombre de clase) o `protected $table` si el nombre es distinto.
+- **UUID como clave primaria**: cuando la migración define `$table->uuid('id')->primary()`, el modelo **debe** usar el trait `Illuminate\Database\Eloquent\Concerns\HasUuids`. Este trait indica a Eloquent que la PK es un UUID (no auto-incremental), deshabilita los enteros autoincrementales y genera el UUID automáticamente al crear el modelo.
+
+  ```php
+  use Illuminate\Database\Eloquent\Concerns\HasUuids;
+
+  class Platform extends Model
+  {
+      use HasUuids;
+  }
+  ```
 
 ## Evitar N+1
 
@@ -22,9 +32,10 @@ alwaysApply: true
 
 ## Repositorios y consultas
 
-- El acceso a datos se hace a través de repositorios (interfaces en `Repositories/Contracts/`, implementaciones en `Repositories/`). Los UseCases y Services no inyectan la interfaz del repositorio: inyectan la Factory correspondiente (ej. `EventDefinitionFactory`) y obtienen el repositorio con `$factory->make()`, que devuelve la implementación vía `app(ConcreteRepository::class)`. No usar el modelo Eloquent directo fuera del repositorio.
+- El acceso a datos se hace a través de repositorios (interfaces en `Repositories/Contracts/`, implementaciones en `Repositories/`). Los UseCases y Services no inyectan la interfaz del repositorio: inyectan la Factory correspondiente (ej. `EventDefinitionFactory`) y obtienen el repositorio con `$factory->make()`. La Factory instancia directamente la clase concreta del repositorio (`new ConcreteRepository()`); **no** se usa `app()` ni ningún binding del service provider de Laravel. No usar el modelo Eloquent directo fuera del repositorio.
 - Consultas complejas (filtros, joins, paginación) van en el repositorio; el UseCase orquesta y no construye queries.
 - Si se usa `DB::raw()` o `whereRaw()`, bindear parámetros (placeholders `?` o named bindings). No concatenar input del usuario en SQL crudo.
+- En eliminaciones (`delete`) que puedan romper por referencias FK, capturar `QueryException`, validar que el error es de llave foránea (SQLSTATE / código del driver / mensaje), y traducirlo a excepción de dominio (`MmtException`) en lugar de exponer la excepción técnica directa.
 
 ## Migraciones
 

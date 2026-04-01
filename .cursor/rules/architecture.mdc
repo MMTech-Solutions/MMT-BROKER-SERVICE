@@ -65,12 +65,39 @@ Ejemplo de cadena: `ListEventDefinitionsRequest` → `ListEventDefinitionsComman
 - **No usar try-catch** en los controladores para capturar excepciones de negocio o dominio (404, 409, etc.). El controlador debe quedar limpio: crear Command, ejecutar UseCase, devolver respuesta de éxito.
 - Los **errores se expresan con excepciones** que extienden `MmtException` (o la base del proyecto). Esas excepciones tienen un método `render` que permite al exception handler de Laravel devolver una respuesta JSON con el código HTTP adecuado.
 - El **repositorio o use case** debe lanzar excepciones de dominio (ej. `JourneyNotFoundException`, `JourneyHasEnrollmentsException`) cuando corresponda; el controlador **no** las captura ni devuelve `response()->json()` manualmente.
+- Cuando una operación de borrado falle por restricción de llave foránea, capturar la excepción técnica de base de datos en UseCase/Repositorio, verificar que realmente corresponde a una FK constraint y lanzar una **excepción de dominio personalizada** que extienda `MmtException` (ej. `ResourceHasDependenciesException` con HTTP 409).
 - Así cualquier excepción que llegue al controlador será capturada por el handler y se devolverá la respuesta JSON correspondiente; el controlador solo orquesta el flujo feliz (Command → Execute → Success).
 - **Commands**: Objetos de datos con constructor y `static fromRequest(Request $request): self`. Un command por acción (List, Store, etc.).
 - **UseCases**: Un método `execute(Command $command)` (o parámetros equivalentes). Dependen de Factories (repositorios del **mismo** feature), servicios internos y, cuando haga falta, **servicios especializados** de otros features (ver «Comunicación entre features»). No de Http. No inyectar interfaces de repositorio directamente.
 - **Repositories**: Implementan interfaces en `Repositories/Contracts/`. Las interfaces definen el contrato; las implementaciones viven en `Repositories/`. No se inyectan por interfaz: se accede siempre vía Factory (ver abajo).
   - **Naming**: el contrato usa sufijo `Interface` (ej. `UserRepositoryInterface`) y la implementación concreta elimina el sufijo (ej. `UserRepository`).
-- **Repository Factory**: Por cada repositorio existe una Factory en `Factories/` (ej. `EventDefinitionFactory`). UseCases, Services y Jobs inyectan la Factory, no la interfaz del repositorio. La Factory expone `make()` que devuelve la implementación del contrato usando el contenedor de Laravel: `return app(ConcreteRepository::class)`. Así el tipo de retorno de `make()` es la interfaz; la resolución concreta la hace el contenedor.
+- **Repository Factory**: Por cada repositorio existe una Factory en `Factories/` (ej. `EventDefinitionFactory`). UseCases, Services y Jobs inyectan la Factory, no la interfaz del repositorio. La Factory expone `make()` que **instancia directamente** la implementación concreta con `new` — **no** usa el contenedor de Laravel. El tipo de retorno declarado es la interfaz del contrato; la implementación concreta se especifica dentro de la propia Factory.
+
+  ```php
+  // app/Features/Events/Factories/EventDefinitionFactory.php
+  class EventDefinitionFactory
+  {
+      public function make(): EventDefinitionRepositoryInterface
+      {
+          return new EventDefinitionRepository();
+      }
+  }
+  ```
+
+- **Otras Factories** (servicios, drivers, integraciones externas, etc.): cuando la clase concreta tiene dependencias que debe resolver el contenedor de Laravel, se usa `resolve(Concrete::class)` en lugar de `new`. Esto permite que el contenedor inyecte servicios registrados (ej. clientes HTTP, configuración, etc.) sin necesidad de un binding explícito en un provider.
+
+  ```php
+  // app/Features/Notifications/Factories/NotificationDriverFactory.php
+  class NotificationDriverFactory
+  {
+      public function make(): NotificationDriverInterface
+      {
+          return resolve(SlackNotificationDriver::class);
+      }
+  }
+  ```
+
+  Regla general: usar `new` cuando la clase concreta no tiene dependencias de servicio; usar `resolve()` cuando el contenedor debe construir el objeto con sus dependencias inyectadas.
 - **Models**: Solo en `Features/<Feature>/Models/`. Relaciones y atributos del dominio de ese feature.
 - **Exceptions**: Excepciones de dominio en `Features/<Feature>/Exceptions/` (ej. `DuplicateEventDefinitionException`).
 
@@ -78,6 +105,12 @@ Ejemplo de cadena: `ListEventDefinitionsRequest` → `ListEventDefinitionsComman
 
 - Rutas bajo `routes/api.php` con prefijo `v1`. Los controladores referenciados son los de `Http\V1\Controllers`.
 - Mantener un controlador por acción (single action / invocable) cuando tenga sentido.
+- Para actualización de recursos, usar `PATCH` como método estándar (actualización parcial).
+- Usar `PUT` únicamente cuando el caso de uso exija reemplazar el recurso completo y esa decisión esté justificada en la planificación.
+- Para eliminación de recursos, usar `DELETE` y devolver siempre `noContent()` en el flujo exitoso.
+- En endpoints de listado, paginar por defecto (salvo decisión explícita en contra durante planificación).
+- En endpoints de listado paginado, los filtros deben entrar por query string y sus reglas deben definirse en el `FormRequest` correspondiente dentro de `Http/V1/Requests/`.
+- En endpoints de listado paginado, los filtros por query string deben incluir como mínimo los mismos campos del endpoint de creación del recurso. Esos filtros deben mapearse con `Command::fromRequest()` y resolverse en el repositorio.
 
 ## Qué evitar
 
