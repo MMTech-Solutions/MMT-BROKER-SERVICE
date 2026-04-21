@@ -9,20 +9,18 @@ class StorePlatformCommand
     public function __construct(
         public readonly string $name,
         public readonly ?string $customName,
-        public readonly string $code,
         public readonly int $volumeFactor,
         public readonly bool $isActive,
     ) {}
 
     public static function fromRequest(StorePlatformRequest $request): self
     {
-        /** @var array{name: string, code: string, volume_factor: int, custom_name?: string|null, is_active?: bool} $validated */
+        /** @var array{name: string, volume_factor: int, custom_name?: string|null, is_active?: bool} $validated */
         $validated = $request->validated();
 
         return new self(
             name: $validated['name'],
             customName: $validated['custom_name'] ?? null,
-            code: $validated['code'],
             volumeFactor: (int) $validated['volume_factor'],
             isActive: (bool) ($validated['is_active'] ?? false),
         );

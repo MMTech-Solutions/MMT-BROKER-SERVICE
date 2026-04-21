@@ -20,7 +20,6 @@ class PlatformResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'custom_name' => $this->custom_name,
-            'code' => $this->code,
             'volume_factor' => $this->volume_factor,
             'is_active' => $this->is_active,
             'created_at' => $this->created_at?->toIso8601String(),

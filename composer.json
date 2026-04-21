@@ -5,11 +5,21 @@
     "description": "The skeleton application for the Laravel framework.",
     "keywords": ["laravel", "framework"],
     "license": "MIT",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "packages/mmt/trading-service-sdk",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
     "require": {
         "php": "^8.3",
         "laravel/framework": "^13.0",
         "laravel/tinker": "^3.0",
-        "mmt/laravel-feature-scaffold": "^1.2"
+        "mmt/laravel-feature-scaffold": "^1.2",
+        "mmt/laravel-trading-service-sdk": "@dev"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

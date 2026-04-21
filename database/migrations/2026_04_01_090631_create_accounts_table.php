@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('accounts', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('custom_name')->nullable();
-            $table->uuid('user_id');
+            $table->uuid('external_user_id');
             $table->string('password');
             $table->string('investor_password');
 

@@ -12,15 +12,27 @@ class UpdatePlatformSettingCommand
     public function __construct(
         public readonly string $platformId,
         public readonly string $settingId,
-        public readonly array $attributes,
+        public readonly ?string $host,
+        public readonly ?int $port,
+        public readonly ?string $username,
+        public readonly ?string $password,
+        public readonly ?int $environment,
+        public readonly ?bool $isActive,
     ) {}
 
     public static function fromRequest(UpdatePlatformSettingRequest $request): self
     {
+        $validated = $request->validated();
+        
         return new self(
             platformId: (string) $request->route('platformUuid'),
             settingId: (string) $request->route('settingUuid'),
-            attributes: $request->validated(),
+            host: $validated['host'] ?? null,
+            port: $validated['port'] ?? null,
+            username: $validated['username'] ?? null,
+            password: $validated['password'] ?? null,
+            environment: $validated['environment'] ?? null,
+            isActive: $validated['is_active'] ?? false,
         );
     }
 }

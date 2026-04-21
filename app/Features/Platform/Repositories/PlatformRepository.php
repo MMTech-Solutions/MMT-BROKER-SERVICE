@@ -13,7 +13,6 @@ class PlatformRepository implements PlatformRepositoryInterface
         return Platform::query()
             ->when(($filters['name'] ?? null) !== null, fn ($query) => $query->where('name', 'like', '%'.$filters['name'].'%'))
             ->when(($filters['custom_name'] ?? null) !== null, fn ($query) => $query->where('custom_name', 'like', '%'.$filters['custom_name'].'%'))
-            ->when(($filters['code'] ?? null) !== null, fn ($query) => $query->where('code', 'like', '%'.$filters['code'].'%'))
             ->when(($filters['volume_factor'] ?? null) !== null, fn ($query) => $query->where('volume_factor', (int) $filters['volume_factor']))
             ->when(array_key_exists('is_active', $filters) && $filters['is_active'] !== null, function ($query) use ($filters) {
                 $query->where('is_active', (bool) $filters['is_active']);

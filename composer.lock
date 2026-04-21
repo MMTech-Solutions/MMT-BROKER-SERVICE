@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d4eabfacc4947b7d7f3fae2368dc9770",
+    "content-hash": "3b4bb1e38d12cafcbc6d040dea2b16dd",
     "packages": [
         {
             "name": "brick/math",
@@ -2100,6 +2100,46 @@
                 "source": "https://github.com/TitanDvd/laravel-feature-scaffold/tree/v1.2.0"
             },
             "time": "2026-03-24T10:25:44+00:00"
+        },
+        {
+            "name": "mmt/laravel-trading-service-sdk",
+            "version": "dev-main",
+            "dist": {
+                "type": "path",
+                "url": "packages/mmt/trading-service-sdk",
+                "reference": "08e868ec5ec36470df7e49fd43c10f2a46bc1a22"
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^7.2",
+                "php": "^8.3"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Mmt\\TradingServiceSdk\\TradingServiceSdkServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Mmt\\TradingServiceSdk\\": "src/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "description": "Laravel SDK for interacting with the MMT Trading Service.",
+            "keywords": [
+                "laravel",
+                "mmt",
+                "sdk",
+                "trading"
+            ],
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "monolog/monolog",
@@ -8109,7 +8149,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "mmt/laravel-trading-service-sdk": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

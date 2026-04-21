@@ -12,13 +12,13 @@ class StorePlatformSettingCommand
         public readonly int $port,
         public readonly string $username,
         public readonly string $password,
-        public readonly int $enviroment,
+        public readonly int $environment,
         public readonly bool $isActive,
     ) {}
 
     public static function fromRequest(StorePlatformSettingRequest $request): self
     {
-        /** @var array{host: string, port: int, username: string, password: string, enviroment: int, is_active?: bool} $validated */
+        /** @var array{host: string, port: int, username: string, password: string, environment: int, is_active?: bool} $validated */
         $validated = $request->validated();
 
         return new self(
@@ -27,7 +27,7 @@ class StorePlatformSettingCommand
             port: (int) $validated['port'],
             username: $validated['username'],
             password: $validated['password'],
-            enviroment: (int) $validated['enviroment'],
+            environment: (int) $validated['environment'],
             isActive: (bool) ($validated['is_active'] ?? false),
         );
     }

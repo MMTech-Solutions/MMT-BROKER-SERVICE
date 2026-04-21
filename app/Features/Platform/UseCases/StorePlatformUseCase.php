@@ -17,7 +17,6 @@ class StorePlatformUseCase
         return $this->platformFactory->make()->create([
             'name' => $command->name,
             'custom_name' => $command->customName,
-            'code' => $command->code,
             'volume_factor' => $command->volumeFactor,
             'is_active' => $command->isActive,
         ]);

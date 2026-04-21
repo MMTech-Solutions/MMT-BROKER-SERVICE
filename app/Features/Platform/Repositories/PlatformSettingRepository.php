@@ -3,7 +3,9 @@
 namespace App\Features\Platform\Repositories;
 
 use App\Features\Platform\Models\PlatformSetting;
+use App\Features\Platform\Exceptions\UniqueCredentialsException;
 use App\Features\Platform\Repositories\Contracts\PlatformSettingRepositoryInterface;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class PlatformSettingRepository implements PlatformSettingRepositoryInterface
@@ -25,12 +27,17 @@ class PlatformSettingRepository implements PlatformSettingRepositoryInterface
 
     public function findById(string $id): ?PlatformSetting
     {
-        return PlatformSetting::query()->whereKey($id)->first();
+        return PlatformSetting::whereKey($id)->first();
     }
 
     public function create(array $attributes): PlatformSetting
     {
-        return PlatformSetting::query()->create($attributes);
+        try {
+            return PlatformSetting::create($attributes);
+        }
+        catch(UniqueConstraintViolationException $e) {
+            throw new UniqueCredentialsException();
+        }
     }
 
     public function update(PlatformSetting $setting, array $attributes): PlatformSetting

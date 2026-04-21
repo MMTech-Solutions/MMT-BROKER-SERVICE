@@ -19,6 +19,6 @@ class StorePlatformSettingController
     ): JsonResponse {
         $setting = $useCase->execute(StorePlatformSettingCommand::fromRequest($request));
 
-        return $this->created((new PlatformSettingResource($setting))->resolve());
+        return $this->created(new PlatformSettingResource($setting)->resolve());
     }
 }

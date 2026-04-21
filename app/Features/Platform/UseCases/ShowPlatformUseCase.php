@@ -18,7 +18,7 @@ class ShowPlatformUseCase
         $platform = $this->platformFactory->make()->findById($command->platformId);
 
         if ($platform === null) {
-            throw new PlatformNotFoundException;
+            throw new PlatformNotFoundException();
         }
 
         return $platform;

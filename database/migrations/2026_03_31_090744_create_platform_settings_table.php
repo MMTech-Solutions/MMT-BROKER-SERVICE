@@ -3,7 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Features\Platform\Enums\PlatformEnviroment;
+use App\Features\Platform\Enums\PlatformEnvironment;
 
 return new class extends Migration
 {
@@ -16,9 +16,12 @@ return new class extends Migration
             $table->integer('port')->default(0);
             $table->string('username');
             $table->string('password');
-            $table->integer('enviroment')->default(PlatformEnviroment::DEMO->value)->comment('See ' . PlatformEnviroment::class . ' enum for possible values');
+            $table->string('connection_id')->nullable();
+            $table->integer('environment')->default(PlatformEnvironment::DEMO->value)->comment('See ' . PlatformEnvironment::class . ' enum for possible values');
             $table->boolean('is_active')->default(false);
             $table->timestamps();
+
+            $table->unique(['host', 'username']);
         });
     }
     

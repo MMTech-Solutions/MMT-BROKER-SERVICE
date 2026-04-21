@@ -23,9 +23,10 @@ class PlatformSettingResource extends JsonResource
             'port' => $this->port,
             'username' => $this->username,
             'password' => $this->password,
-            'enviroment' => [
-                'value' => $this->enviroment->value,
-                'label' => $this->enviroment->name,
+            'connection_id' => $this->connection_id,
+            'environment' => [
+                'value' => $this->environment->value,
+                'label' => $this->environment->name,
             ],
             'is_active' => $this->is_active,
             'created_at' => $this->created_at?->toIso8601String(),

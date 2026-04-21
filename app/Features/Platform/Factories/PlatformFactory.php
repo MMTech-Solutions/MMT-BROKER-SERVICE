@@ -16,6 +16,6 @@ class PlatformFactory
 
     public function makeSetting(): PlatformSettingRepositoryInterface
     {
-        return new PlatformSettingRepository;
+        return new PlatformSettingRepository();
     }
 }

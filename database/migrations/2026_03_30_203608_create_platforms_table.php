@@ -12,7 +12,6 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('name')->unique();
             $table->string('custom_name')->nullable();
-            $table->string('code')->unique();
             $table->integer('volume_factor');
             $table->boolean('is_active')->default(false);
             $table->timestamps();
