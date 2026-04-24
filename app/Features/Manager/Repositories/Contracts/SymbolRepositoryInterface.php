@@ -6,9 +6,9 @@ use App\Features\Manager\Models\Symbol;
 
 interface SymbolRepositoryInterface
 {
-    public function create(string $name, string $alpha, int $stype, string $platformSettingId) : Symbol;
+    public function create(string $name, string $alpha, int $stype, string $managerId) : Symbol;
 
-    public function deleteAllByPlatformSettingId(string $platformSettingId) : void;
+    public function deleteAllByManagerId(string $managerId) : void;
 
     /**
      * @param string[] $symbolIds

@@ -8,11 +8,11 @@ use Illuminate\Support\Collection;
 
 class SecurityRepository implements SecurityRepositoryInterface
 {
-    public function create(string $name, string $platformSettingId) : Security
+    public function create(string $name, string $managerId) : Security
     {
         return Security::create([
             'name' => $name,
-            'platform_setting_id' => $platformSettingId,
+            'manager_id' => $managerId,
         ]);
     }
 

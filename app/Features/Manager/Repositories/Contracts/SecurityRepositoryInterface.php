@@ -8,11 +8,11 @@ use Illuminate\Support\Collection;
 
 interface SecurityRepositoryInterface
 {
-    public function create(string $name, string $platformSettingId) : Security;
+    public function create(string $name, string $managerId) : Security;
 
     /**
      * @param Security $security
-     * @param array<{name: string, alpha: string, stype: int, platform_setting_id: string}> $symbols
+     * @param array<{name: string, alpha: string, stype: int, manager_id: string}> $symbols
      */
     public function addSymbols(Security $security, array $symbols) : Collection;
 

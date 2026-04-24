@@ -8,12 +8,12 @@ use Illuminate\Support\Collection;
 
 class ServerGroupRepository implements ServerGroupRepositoryInterface
 {
-    public function basicCreate(string $name, string $platformSettingId) : ServerGroup
+    public function basicCreate(string $name, string $managerId) : ServerGroup
     {
         return ServerGroup::create([
             'name' => $name,
             'meta_name' => $name, // Inicialmente se usa el mismo nombre para la meta_name.
-            'platform_setting_id' => $platformSettingId,
+            'manager_id' => $managerId,
         ]);
     }
 
@@ -22,9 +22,9 @@ class ServerGroupRepository implements ServerGroupRepositoryInterface
         $serverGroup->securities()->sync($securities->pluck('id'));
     }
 
-    public function deleteAllByPlatformSettingId(string $platformSettingId) : void
+    public function deleteAllByManagerId(string $managerId) : void
     {
-        ServerGroup::where('platform_setting_id', $platformSettingId)->delete();
+        ServerGroup::where('manager_id', $managerId)->delete();
     }
 
     public function findByUuid(string $uuid) : ?ServerGroup
@@ -32,11 +32,25 @@ class ServerGroupRepository implements ServerGroupRepositoryInterface
         return ServerGroup::where('uuid', $uuid)->first();
     }
 
-    public function getDiff(array $groupNames) : \Illuminate\Database\Eloquent\Collection
+    public function getDiff(string $managerId, array $groupNames) : \Illuminate\Database\Eloquent\Collection
     {
         return ServerGroup::with([
             'securities',
             'securities.symbols',
-        ])->whereNotIn('name', $groupNames)->get();
+        ])->where('manager_id', $managerId)
+        ->whereNotIn('name', $groupNames)->get();
+    }
+
+    public function deleteById(string $id) : void
+    {
+        ServerGroup::where('id', $id)->delete();
+    }
+
+    public function findByName(string $name, string $managerId) : ?ServerGroup
+    {
+        return ServerGroup::with(['securities', 'securities.symbols'])
+            ->where('name', $name)
+            ->where('manager_id', $managerId)
+            ->first();
     }
 }

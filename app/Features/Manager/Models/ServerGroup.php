@@ -9,10 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * 
- * @property string $uuid
+ * @property string $id
  * @property string $name
  * @property string $meta_name
- * @property string $platform_setting_id
+ * @property string $manager_id
  * @property Collection<Security> $securities
  * @property Collection<Symbol> $symbols
  * 
@@ -24,7 +24,7 @@ class ServerGroup extends Model
     protected $fillable = [
         'name',
         'meta_name',
-        'platform_setting_id',
+        'manager_id',
     ];
 
     public function securities(): BelongsToMany

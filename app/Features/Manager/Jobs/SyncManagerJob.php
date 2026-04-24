@@ -2,6 +2,7 @@
 
 namespace App\Features\Manager\Jobs;
 
+use App\Features\Manager\Events\ManagerSyncDoneEvent;
 use App\Features\Manager\Services\SyncManagerService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -18,7 +19,7 @@ class SyncManagerJob implements ShouldQueue
         SyncManagerService $syncManagerService,
     ): void
     {
-        // Sincronizar los grupos de instrumentos (securities) y los instrumentos (symbols)
         $syncManagerService->execute($this->managerId);
+        ManagerSyncDoneEvent::dispatch($this->managerId);
     }
 }
