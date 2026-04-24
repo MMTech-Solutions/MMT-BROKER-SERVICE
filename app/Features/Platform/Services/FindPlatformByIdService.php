@@ -1,31 +1,23 @@
 <?php
 
-namespace App\Features\Platform\UseCases;
+namespace App\Features\Platform\Services;
 
 use App\Features\Platform\Exceptions\PlatformNotFoundException;
 use App\Features\Platform\Factories\PlatformRepositoryFactory;
-use App\Features\Platform\Http\V1\Commands\ShowPlatformCommand;
 use App\Features\Platform\Models\Platform;
 use App\Features\Platform\Repositories\Contracts\PlatformRepositoryInterface;
 
-class ShowPlatformUseCase
+class FindPlatformByIdService
 {
     protected PlatformRepositoryInterface $platformRepository;
-    
     public function __construct(
         private readonly PlatformRepositoryFactory $platformRepositoryFactory,
-    ) {
+    ){
         $this->platformRepository = $platformRepositoryFactory->make();
     }
 
-    public function execute(ShowPlatformCommand $command): Platform
+    public function execute(string $platformId): Platform
     {
-        $platform = $this->platformRepository->findById($command->platformId);
-
-        if ($platform === null) {
-            throw new PlatformNotFoundException();
-        }
-
-        return $platform;
+        return $this->platformRepository->findById($platformId) ?? throw new PlatformNotFoundException();
     }
 }

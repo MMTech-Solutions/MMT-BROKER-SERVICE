@@ -4,27 +4,31 @@ namespace App\Features\Platform\UseCases;
 
 use App\Features\Platform\Exceptions\PlatformHasDependenciesException;
 use App\Features\Platform\Exceptions\PlatformNotFoundException;
-use App\Features\Platform\Factories\PlatformFactory;
+use App\Features\Platform\Factories\PlatformRepositoryFactory;
 use App\Features\Platform\Http\V1\Commands\DeletePlatformCommand;
+use App\Features\Platform\Repositories\Contracts\PlatformRepositoryInterface;
 use Illuminate\Database\QueryException;
 
 class DeletePlatformUseCase
 {
+    protected PlatformRepositoryInterface $platformRepository;
+    
     public function __construct(
-        private readonly PlatformFactory $platformFactory,
-    ) {}
+        private readonly PlatformRepositoryFactory $platformRepositoryFactory,
+    ){
+        $this->platformRepository = $platformRepositoryFactory->make();
+    }
 
     public function execute(DeletePlatformCommand $command): void
     {
-        $repository = $this->platformFactory->make();
-        $platform = $repository->findById($command->platformId);
+        $platform = $this->platformRepository->findById($command->platformId);
 
         if ($platform === null) {
             throw new PlatformNotFoundException;
         }
 
         try {
-            $repository->delete($platform);
+            $this->platformRepository->delete($platform);
         } catch (QueryException $exception) {
             if ($this->isForeignKeyConstraintError($exception)) {
                 throw new PlatformHasDependenciesException($exception);

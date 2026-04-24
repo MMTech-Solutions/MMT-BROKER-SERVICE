@@ -2,19 +2,24 @@
 
 namespace App\Features\Platform\UseCases;
 
-use App\Features\Platform\Factories\PlatformFactory;
 use App\Features\Platform\Http\V1\Commands\ListPlatformsCommand;
+use App\Features\Platform\Factories\PlatformRepositoryFactory;
+use App\Features\Platform\Repositories\Contracts\PlatformRepositoryInterface;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class ListPlatformsUseCase
 {
+    protected PlatformRepositoryInterface $platformRepository;
+    
     public function __construct(
-        private readonly PlatformFactory $platformFactory,
-    ) {}
+        private readonly PlatformRepositoryFactory $platformRepositoryFactory,
+    ) {
+        $this->platformRepository = $platformRepositoryFactory->make();
+    }
 
     public function execute(ListPlatformsCommand $command): LengthAwarePaginator
     {
-        return $this->platformFactory->make()->paginate(
+        return $this->platformRepository->paginate(
             filters: [
                 'name' => $command->name,
                 'custom_name' => $command->customName,
