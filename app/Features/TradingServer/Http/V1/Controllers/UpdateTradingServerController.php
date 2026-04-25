@@ -1,0 +1,24 @@
+<?php
+
+namespace App\Features\TradingServer\Http\V1\Controllers;
+
+use App\Features\TradingServer\Http\V1\Commands\UpdateTradingServerCommand;
+use App\Features\TradingServer\Http\V1\Requests\UpdateTradingServerRequest;
+use App\Features\TradingServer\Http\V1\Resources\TradingServerResource;
+use App\Features\TradingServer\UseCases\UpdateTradingServerUseCase;
+use Illuminate\Http\JsonResponse;
+use MMT\ApiResponseNormalizer\ApiResponse;
+
+class UpdateTradingServerController
+{
+    use ApiResponse;
+
+    public function __invoke(
+        UpdateTradingServerRequest $request,
+        UpdateTradingServerUseCase $useCase,
+    ): JsonResponse {
+        $TradingServer = $useCase->execute(UpdateTradingServerCommand::fromRequest($request));
+
+        return $this->success((new TradingServerResource($TradingServer))->resolve());
+    }
+}

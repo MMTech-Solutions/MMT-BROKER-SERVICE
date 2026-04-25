@@ -1,0 +1,30 @@
+---
+description: Convenciones para mantener la colección de Postman del proyecto
+globs: "postman-collection,**/*postman*.json"
+alwaysApply: false
+---
+
+# Convenciones Postman
+
+## Variables de URL
+
+- Los placeholders de URL deben usar variables en **MAYÚSCULAS** con `snake_case` (ej. `{{TRADING_SERVER_UUID}}`).
+- No usar variables en minúsculas para IDs de ruta (evitar `{{manager_uuid}}`, `{{user_uuid}}`, etc.).
+- Mantener `{{BASE_URL}}` como variable base y construir rutas desde ahí.
+
+## Endpoints incluidos
+
+- La colección debe reflejar únicamente endpoints vigentes en `routes/api.php`.
+- No incluir endpoints de prueba o temporales (por ejemplo `test`).
+- Si hay breaking changes de rutas (ej. `managers` -> `trading-servers`), actualizar todas las requests y paths internos.
+
+## Requests de listado (filtros)
+
+- En endpoints que aceptan filtros, agregar los query params en `url.query`.
+- Los params de filtros deben quedar `disabled: true` por defecto y con valores de ejemplo.
+- Conservar `page` y `per_page` como filtros estándar deshabilitados en listados paginados.
+
+## Nombres de requests
+
+- Los nombres de requests deben seguir el nombre de dominio vigente.
+- Si cambia el dominio (`Manager` -> `Trading Server`), renombrar también las requests visibles en la colección.

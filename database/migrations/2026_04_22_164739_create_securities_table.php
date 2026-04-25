@@ -24,10 +24,10 @@ return new class extends Migration
             $table->integer('position')->default(0);
             // --
 
-            $table->foreignUuid('manager_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('trading_server_id')->constrained("trading_servers")->cascadeOnDelete();
             $table->timestamps();
 
-            $table->unique(['name', 'manager_id'], 'securities_unique');
+            $table->unique(['name', 'trading_server_id'], 'securities_unique');
         });
     }
     

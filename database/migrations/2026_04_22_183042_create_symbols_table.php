@@ -16,10 +16,10 @@ return new class extends Migration
             $table->string('name');
             $table->string('alpha');
             $table->integer('stype');
-            $table->foreignUuid('manager_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('trading_server_id')->constrained("trading_servers")->cascadeOnDelete();
             $table->timestamps();
 
-            $table->unique(['alpha', 'manager_id'], 'symbols_unique');
+            $table->unique(['alpha', 'trading_server_id'], 'symbols_unique');
         });
     }
     

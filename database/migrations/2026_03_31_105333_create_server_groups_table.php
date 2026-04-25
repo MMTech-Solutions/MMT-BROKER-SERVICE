@@ -1,6 +1,6 @@
 <?php
 
-use App\Features\Manager\Enums\BookTypeEnum;
+use App\Features\TradingServer\Enums\BookTypeEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create('server_groups', function (Blueprint $table) {
             
             $table->uuid('id')->primary();
-            $table->foreignUuid('manager_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('trading_server_id')->constrained("trading_servers")->cascadeOnDelete();
             $table->string('name');
             $table->string('description')->nullable();
             $table->string('meta_name')->comment('The name of the meta tag that contains the server group');
@@ -47,7 +47,7 @@ return new class extends Migration
             $table->softDeletes();
             $table->timestamps();
 
-            $table->unique(['name', 'manager_id'], 'server_groups_unique');
+            $table->unique(['name', 'trading_server_id'], 'server_groups_unique');
         });
     }
     

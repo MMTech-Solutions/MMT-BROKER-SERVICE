@@ -14,7 +14,7 @@
       "value": "00000000-0000-0000-0000-000000000001"
     },
     {
-      "key": "MANAGER_UUID",
+      "key": "TRADING_SERVER_UUID",
       "value": "00000000-0000-0000-0000-000000000002"
     },
     {
@@ -169,15 +169,15 @@
       ]
     },
     {
-      "name": "Managers",
+      "name": "Trading Servers",
       "item": [
         {
-          "name": "List Manager Environments",
+          "name": "List Trading Server Environments",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{BASE_URL}}/api/broker/v1/managers/environments/availables",
+              "raw": "{{BASE_URL}}/api/broker/v1/trading-servers/environments/availables",
               "host": [
                 "{{BASE_URL}}"
               ],
@@ -185,7 +185,7 @@
                 "api",
                 "broker",
                 "v1",
-                "managers",
+                "trading-servers",
                 "environments",
                 "availables"
               ]
@@ -193,12 +193,12 @@
           }
         },
         {
-          "name": "List Managers",
+          "name": "List Trading Servers",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{BASE_URL}}/api/broker/v1/managers",
+              "raw": "{{BASE_URL}}/api/broker/v1/trading-servers",
               "host": [
                 "{{BASE_URL}}"
               ],
@@ -206,7 +206,7 @@
                 "api",
                 "broker",
                 "v1",
-                "managers"
+                "trading-servers"
               ],
               "query": [
                 {
@@ -254,7 +254,7 @@
           }
         },
         {
-          "name": "Store Manager",
+          "name": "Store Trading Server",
           "request": {
             "method": "POST",
             "header": [
@@ -268,7 +268,7 @@
               "raw": "{\n  \"platform_id\": \"{{PLATFORM_UUID}}\",\n  \"host\": \"45.94.184.177\",\n  \"port\": 443,\n  \"username\": \"1102\",\n  \"password\": \"your-password\",\n  \"environment\": 1,\n  \"is_active\": true\n}"
             },
             "url": {
-              "raw": "{{BASE_URL}}/api/broker/v1/managers",
+              "raw": "{{BASE_URL}}/api/broker/v1/trading-servers",
               "host": [
                 "{{BASE_URL}}"
               ],
@@ -276,7 +276,7 @@
                 "api",
                 "broker",
                 "v1",
-                "managers"
+                "trading-servers"
               ]
             }
           }
@@ -287,7 +287,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{BASE_URL}}/api/broker/v1/managers/{{MANAGER_UUID}}/server-groups",
+              "raw": "{{BASE_URL}}/api/broker/v1/trading-servers/{{TRADING_SERVER_UUID}}/server-groups",
               "host": [
                 "{{BASE_URL}}"
               ],
@@ -295,8 +295,8 @@
                 "api",
                 "broker",
                 "v1",
-                "managers",
-                "{{MANAGER_UUID}}",
+                "trading-servers",
+                "{{TRADING_SERVER_UUID}}",
                 "server-groups"
               ],
               "query": [
@@ -330,7 +330,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{BASE_URL}}/api/broker/v1/managers/{{MANAGER_UUID}}/server-groups/{{SERVER_GROUP_UUID}}/securities",
+              "raw": "{{BASE_URL}}/api/broker/v1/trading-servers/{{TRADING_SERVER_UUID}}/server-groups/{{SERVER_GROUP_UUID}}/securities",
               "host": [
                 "{{BASE_URL}}"
               ],
@@ -338,8 +338,8 @@
                 "api",
                 "broker",
                 "v1",
-                "managers",
-                "{{MANAGER_UUID}}",
+                "trading-servers",
+                "{{TRADING_SERVER_UUID}}",
                 "server-groups",
                 "{{SERVER_GROUP_UUID}}",
                 "securities"
@@ -370,7 +370,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{BASE_URL}}/api/broker/v1/managers/{{MANAGER_UUID}}/securities",
+              "raw": "{{BASE_URL}}/api/broker/v1/trading-servers/{{TRADING_SERVER_UUID}}/securities",
               "host": [
                 "{{BASE_URL}}"
               ],
@@ -378,8 +378,8 @@
                 "api",
                 "broker",
                 "v1",
-                "managers",
-                "{{MANAGER_UUID}}",
+                "trading-servers",
+                "{{TRADING_SERVER_UUID}}",
                 "securities"
               ],
               "query": [
@@ -408,7 +408,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{BASE_URL}}/api/broker/v1/managers/{{MANAGER_UUID}}/securities/{{SECURITY_UUID}}/symbols",
+              "raw": "{{BASE_URL}}/api/broker/v1/trading-servers/{{TRADING_SERVER_UUID}}/securities/{{SECURITY_UUID}}/symbols",
               "host": [
                 "{{BASE_URL}}"
               ],
@@ -416,8 +416,8 @@
                 "api",
                 "broker",
                 "v1",
-                "managers",
-                "{{MANAGER_UUID}}",
+                "trading-servers",
+                "{{TRADING_SERVER_UUID}}",
                 "securities",
                 "{{SECURITY_UUID}}",
                 "symbols"
@@ -458,7 +458,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{BASE_URL}}/api/broker/v1/managers/{{MANAGER_UUID}}/symbols",
+              "raw": "{{BASE_URL}}/api/broker/v1/trading-servers/{{TRADING_SERVER_UUID}}/symbols",
               "host": [
                 "{{BASE_URL}}"
               ],
@@ -466,8 +466,8 @@
                 "api",
                 "broker",
                 "v1",
-                "managers",
-                "{{MANAGER_UUID}}",
+                "trading-servers",
+                "{{TRADING_SERVER_UUID}}",
                 "symbols"
               ],
               "query": [
@@ -501,12 +501,12 @@
           }
         },
         {
-          "name": "Show Manager",
+          "name": "Show Trading Server",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{BASE_URL}}/api/broker/v1/managers/{{MANAGER_UUID}}",
+              "raw": "{{BASE_URL}}/api/broker/v1/trading-servers/{{TRADING_SERVER_UUID}}",
               "host": [
                 "{{BASE_URL}}"
               ],
@@ -514,14 +514,14 @@
                 "api",
                 "broker",
                 "v1",
-                "managers",
-                "{{MANAGER_UUID}}"
+                "trading-servers",
+                "{{TRADING_SERVER_UUID}}"
               ]
             }
           }
         },
         {
-          "name": "Update Manager",
+          "name": "Update Trading Server",
           "request": {
             "method": "PATCH",
             "header": [
@@ -535,7 +535,7 @@
               "raw": "{\n  \"host\": \"45.94.184.177\",\n  \"port\": 443,\n  \"username\": \"1102\",\n  \"password\": \"your-password\",\n  \"environment\": 1,\n  \"is_active\": true\n}"
             },
             "url": {
-              "raw": "{{BASE_URL}}/api/broker/v1/managers/{{MANAGER_UUID}}",
+              "raw": "{{BASE_URL}}/api/broker/v1/trading-servers/{{TRADING_SERVER_UUID}}",
               "host": [
                 "{{BASE_URL}}"
               ],
@@ -543,19 +543,19 @@
                 "api",
                 "broker",
                 "v1",
-                "managers",
-                "{{MANAGER_UUID}}"
+                "trading-servers",
+                "{{TRADING_SERVER_UUID}}"
               ]
             }
           }
         },
         {
-          "name": "Delete Manager",
+          "name": "Delete Trading Server",
           "request": {
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{BASE_URL}}/api/broker/v1/managers/{{MANAGER_UUID}}",
+              "raw": "{{BASE_URL}}/api/broker/v1/trading-servers/{{TRADING_SERVER_UUID}}",
               "host": [
                 "{{BASE_URL}}"
               ],
@@ -563,19 +563,19 @@
                 "api",
                 "broker",
                 "v1",
-                "managers",
-                "{{MANAGER_UUID}}"
+                "trading-servers",
+                "{{TRADING_SERVER_UUID}}"
               ]
             }
           }
         },
         {
-          "name": "Initialize Manager",
+          "name": "Initialize Trading Server",
           "request": {
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{BASE_URL}}/api/broker/v1/managers/{{MANAGER_UUID}}/initialization",
+              "raw": "{{BASE_URL}}/api/broker/v1/trading-servers/{{TRADING_SERVER_UUID}}/initialization",
               "host": [
                 "{{BASE_URL}}"
               ],
@@ -583,20 +583,20 @@
                 "api",
                 "broker",
                 "v1",
-                "managers",
-                "{{MANAGER_UUID}}",
+                "trading-servers",
+                "{{TRADING_SERVER_UUID}}",
                 "initialization"
               ]
             }
           }
         },
         {
-          "name": "Synchronize Manager",
+          "name": "Synchronize Trading Server",
           "request": {
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{BASE_URL}}/api/broker/v1/managers/{{MANAGER_UUID}}/synchronization",
+              "raw": "{{BASE_URL}}/api/broker/v1/trading-servers/{{TRADING_SERVER_UUID}}/synchronization",
               "host": [
                 "{{BASE_URL}}"
               ],
@@ -604,8 +604,8 @@
                 "api",
                 "broker",
                 "v1",
-                "managers",
-                "{{MANAGER_UUID}}",
+                "trading-servers",
+                "{{TRADING_SERVER_UUID}}",
                 "synchronization"
               ]
             }
