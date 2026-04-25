@@ -4,6 +4,7 @@ namespace App\Features\Manager\Repositories;
 
 use App\Features\Manager\Repositories\Contracts\ServerGroupRepositoryInterface;
 use App\Features\Manager\Models\ServerGroup;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 class ServerGroupRepository implements ServerGroupRepositoryInterface
@@ -52,5 +53,15 @@ class ServerGroupRepository implements ServerGroupRepositoryInterface
             ->where('name', $name)
             ->where('manager_id', $managerId)
             ->first();
+    }
+
+    public function paginate(array $filters, int $perPage): LengthAwarePaginator
+    {
+        return ServerGroup::query()
+            ->where('manager_id', $filters['manager_id'])
+            ->when(($filters['name'] ?? null) !== null, fn ($query) => $query->where('name', 'like', '%'.$filters['name'].'%'))
+            ->when(($filters['meta_name'] ?? null) !== null, fn ($query) => $query->where('meta_name', 'like', '%'.$filters['meta_name'].'%'))
+            ->orderBy('created_at')
+            ->paginate($perPage);
     }
 }

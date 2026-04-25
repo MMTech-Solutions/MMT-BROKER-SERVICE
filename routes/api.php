@@ -14,7 +14,14 @@ use App\Features\Manager\Http\V1\Controllers\UpdateManagerController;
 use App\Features\Manager\Http\V1\Controllers\DeleteManagerController;
 use App\Features\Manager\Http\V1\Controllers\InitializeManagerController;
 use App\Features\Manager\Http\V1\Controllers\SynchronizeManagerController;
+use App\Features\Manager\Http\V1\Controllers\ListServerGroupsController;
+use App\Features\Manager\Http\V1\Controllers\ListSecuritiesController;
+use App\Features\Manager\Http\V1\Controllers\ListSymbolsController;
+use App\Features\Manager\Http\V1\Controllers\ListServerGroupSecuritiesController;
+use App\Features\Manager\Http\V1\Controllers\ListSecuritySymbolsController;
 use Illuminate\Support\Facades\Route;
+
+
 
 Route::prefix('broker')->group(function () {
     Route::prefix('v1')->group(function () {
@@ -34,6 +41,11 @@ Route::prefix('broker')->group(function () {
 
             Route::get('/', ListManagersController::class);
             Route::post('/', StoreManagerController::class);
+            Route::get('{managerUuid}/server-groups', ListServerGroupsController::class);
+            Route::get('{managerUuid}/server-groups/{serverGroupUuid}/securities', ListServerGroupSecuritiesController::class);
+            Route::get('{managerUuid}/securities/{securityUuid}/symbols', ListSecuritySymbolsController::class);
+            Route::get('{managerUuid}/securities', ListSecuritiesController::class);
+            Route::get('{managerUuid}/symbols', ListSymbolsController::class);
             Route::get('/{managerUuid}', ShowManagerController::class);
             Route::patch('/{managerUuid}', UpdateManagerController::class);
             Route::delete('/{managerUuid}', DeleteManagerController::class);

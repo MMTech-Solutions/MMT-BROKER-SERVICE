@@ -5,6 +5,7 @@ namespace App\Features\Manager\Repositories\Contracts;
 use App\Features\Manager\Models\ServerGroup;
 use App\Features\Manager\Models\Security;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 interface ServerGroupRepositoryInterface
@@ -33,4 +34,9 @@ interface ServerGroupRepositoryInterface
     public function deleteById(string $id) : void;
 
     public function findByName(string $name, string $managerId) : ?ServerGroup;
+
+    /**
+     * @param array{manager_id: string, name?: string|null, meta_name?: string|null} $filters
+     */
+    public function paginate(array $filters, int $perPage): LengthAwarePaginator;
 }

@@ -4,6 +4,7 @@ namespace App\Features\Manager\Repositories\Contracts;
 
 use App\Features\Manager\Models\Security;
 use App\Features\Manager\Models\Symbol;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 interface SecurityRepositoryInterface
@@ -24,4 +25,9 @@ interface SecurityRepositoryInterface
     public function syncSymbols(Security $security, Collection $symbols) : void;
 
     public function deleteSecuritiesByIds(array $securityIds) : void;
+
+    /**
+     * @param array{manager_id: string, name?: string|null, server_group_id?: string|null} $filters
+     */
+    public function paginate(array $filters, int $perPage): LengthAwarePaginator;
 }

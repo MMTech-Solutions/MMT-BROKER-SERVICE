@@ -4,6 +4,7 @@ namespace App\Features\Manager\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 
 /**
@@ -25,4 +26,9 @@ class Symbol extends Model
         'stype',
         'manager_id',
     ];
+
+    public function securities(): BelongsToMany
+    {
+        return $this->belongsToMany(Security::class);
+    }
 }

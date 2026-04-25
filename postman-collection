@@ -1,0 +1,617 @@
+{
+  "info": {
+    "_postman_id": "2f7a2fb4-4fb7-4f5f-a702-92309eccf000",
+    "name": "Broker Service API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "PLATFORM_UUID",
+      "value": "00000000-0000-0000-0000-000000000001"
+    },
+    {
+      "key": "MANAGER_UUID",
+      "value": "00000000-0000-0000-0000-000000000002"
+    },
+    {
+      "key": "SERVER_GROUP_UUID",
+      "value": "00000000-0000-0000-0000-000000000003"
+    },
+    {
+      "key": "SECURITY_UUID",
+      "value": "00000000-0000-0000-0000-000000000004"
+    }
+  ],
+  "item": [
+    {
+      "name": "Platforms",
+      "item": [
+        {
+          "name": "List Platforms",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/platforms",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "platforms"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Store Platform",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"mt5\",\n  \"custom_name\": \"MetaTrader 5\",\n  \"volume_factor\": 100,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/platforms",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "platforms"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Available Platforms",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/platforms/availables",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "platforms",
+                "availables"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Show Platform",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/platforms/{{PLATFORM_UUID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "platforms",
+                "{{PLATFORM_UUID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Platform",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"custom_name\": \"MetaTrader Five\",\n  \"volume_factor\": 100,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/platforms/{{PLATFORM_UUID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "platforms",
+                "{{PLATFORM_UUID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Platform",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/platforms/{{PLATFORM_UUID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "platforms",
+                "{{PLATFORM_UUID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Managers",
+      "item": [
+        {
+          "name": "List Manager Environments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/managers/environments/availables",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "managers",
+                "environments",
+                "availables"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Managers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/managers",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "managers"
+              ],
+              "query": [
+                {
+                  "key": "platform_id",
+                  "value": "{{PLATFORM_UUID}}",
+                  "disabled": true
+                },
+                {
+                  "key": "host",
+                  "value": "45.94.184.177",
+                  "disabled": true
+                },
+                {
+                  "key": "username",
+                  "value": "1102",
+                  "disabled": true
+                },
+                {
+                  "key": "port",
+                  "value": "443",
+                  "disabled": true
+                },
+                {
+                  "key": "enviroment",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "is_active",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Store Manager",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"platform_id\": \"{{PLATFORM_UUID}}\",\n  \"host\": \"45.94.184.177\",\n  \"port\": 443,\n  \"username\": \"1102\",\n  \"password\": \"your-password\",\n  \"environment\": 1,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/managers",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "managers"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Server Groups",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/managers/{{MANAGER_UUID}}/server-groups",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "managers",
+                "{{MANAGER_UUID}}",
+                "server-groups"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "group",
+                  "disabled": true
+                },
+                {
+                  "key": "meta_name",
+                  "value": "group",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Securities By Server Group",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/managers/{{MANAGER_UUID}}/server-groups/{{SERVER_GROUP_UUID}}/securities",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "managers",
+                "{{MANAGER_UUID}}",
+                "server-groups",
+                "{{SERVER_GROUP_UUID}}",
+                "securities"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "forex",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Securities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/managers/{{MANAGER_UUID}}/securities",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "managers",
+                "{{MANAGER_UUID}}",
+                "securities"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "forex",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Symbols By Security",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/managers/{{MANAGER_UUID}}/securities/{{SECURITY_UUID}}/symbols",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "managers",
+                "{{MANAGER_UUID}}",
+                "securities",
+                "{{SECURITY_UUID}}",
+                "symbols"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "EURUSD",
+                  "disabled": true
+                },
+                {
+                  "key": "alpha",
+                  "value": "EURUSD",
+                  "disabled": true
+                },
+                {
+                  "key": "stype",
+                  "value": "0",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Symbols",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/managers/{{MANAGER_UUID}}/symbols",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "managers",
+                "{{MANAGER_UUID}}",
+                "symbols"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "EURUSD",
+                  "disabled": true
+                },
+                {
+                  "key": "alpha",
+                  "value": "EURUSD",
+                  "disabled": true
+                },
+                {
+                  "key": "stype",
+                  "value": "0",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Show Manager",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/managers/{{MANAGER_UUID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "managers",
+                "{{MANAGER_UUID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Manager",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"host\": \"45.94.184.177\",\n  \"port\": 443,\n  \"username\": \"1102\",\n  \"password\": \"your-password\",\n  \"environment\": 1,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/managers/{{MANAGER_UUID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "managers",
+                "{{MANAGER_UUID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Manager",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/managers/{{MANAGER_UUID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "managers",
+                "{{MANAGER_UUID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Initialize Manager",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/managers/{{MANAGER_UUID}}/initialization",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "managers",
+                "{{MANAGER_UUID}}",
+                "initialization"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Synchronize Manager",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/managers/{{MANAGER_UUID}}/synchronization",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "managers",
+                "{{MANAGER_UUID}}",
+                "synchronization"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
