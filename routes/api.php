@@ -1,5 +1,6 @@
 <?php
 
+use App\Features\Account\Http\V1\Controllers\CreateAccountController;
 use App\Features\Platform\Http\V1\Controllers\DeletePlatformController;
 use App\Features\Platform\Http\V1\Controllers\ListAvailablePlatformsController;
 use App\Features\Platform\Http\V1\Controllers\ListPlatformsController;
@@ -19,6 +20,13 @@ use App\Features\TradingServer\Http\V1\Controllers\ListSecuritiesController;
 use App\Features\TradingServer\Http\V1\Controllers\ListSymbolsController;
 use App\Features\TradingServer\Http\V1\Controllers\ListServerGroupSecuritiesController;
 use App\Features\TradingServer\Http\V1\Controllers\ListSecuritySymbolsController;
+use App\Features\Leverage\Http\V1\Controllers\ListLeveragesController;
+use App\Features\Leverage\Http\V1\Controllers\StoreLeverageController;
+use App\Features\Leverage\Http\V1\Controllers\ShowLeverageController;
+use App\Features\Leverage\Http\V1\Controllers\UpdateLeverageController;
+use App\Features\Leverage\Http\V1\Controllers\DeleteLeverageController;
+use App\Features\Leverage\Http\V1\Controllers\SynchronizeLeveragesController;
+use App\Features\Leverage\Http\V1\Controllers\ListServerGroupLeveragesController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -43,6 +51,9 @@ Route::prefix('broker')->group(function () {
             Route::post('/', StoreTradingServerController::class);
             Route::get('{tradingServerUuid}/server-groups', ListServerGroupsController::class);
             Route::get('{tradingServerUuid}/server-groups/{serverGroupUuid}/securities', ListServerGroupSecuritiesController::class);
+
+            Route::get('{tradingServerUuid}/server-groups/{serverGroupUuid}/leverages', ListServerGroupLeveragesController::class);
+            Route::post('{tradingServerUuid}/server-groups/{serverGroupUuid}/leverages/synchronization', SynchronizeLeveragesController::class);
             Route::get('{tradingServerUuid}/securities/{securityUuid}/symbols', ListSecuritySymbolsController::class);
             Route::get('{tradingServerUuid}/securities', ListSecuritiesController::class);
             Route::get('{tradingServerUuid}/symbols', ListSymbolsController::class);
@@ -51,6 +62,18 @@ Route::prefix('broker')->group(function () {
             Route::delete('/{tradingServerUuid}', DeleteTradingServerController::class);
             Route::post('{tradingServerUuid}/initialization', InitializeTradingServerController::class);
             Route::post('{tradingServerUuid}/synchronization', SynchronizeTradingServerController::class);
+        });
+
+        Route::prefix('leverages')->group(function () {
+            Route::get('/', ListLeveragesController::class);
+            Route::post('/', StoreLeverageController::class);
+            Route::get('/{leverageUuid}', ShowLeverageController::class);
+            Route::patch('/{leverageUuid}', UpdateLeverageController::class);
+            Route::delete('/{leverageUuid}', DeleteLeverageController::class);
+        });
+
+        Route::middleware('gateway.auth.user')->prefix('accounts')->group(function () {
+            Route::post('/', CreateAccountController::class);
         });
     });
 });

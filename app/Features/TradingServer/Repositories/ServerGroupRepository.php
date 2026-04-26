@@ -30,7 +30,7 @@ class ServerGroupRepository implements ServerGroupRepositoryInterface
 
     public function findByUuid(string $uuid) : ?ServerGroup
     {
-        return ServerGroup::where('uuid', $uuid)->first();
+        return ServerGroup::where('id', $uuid)->first();
     }
 
     public function getDiff(string $TradingServerId, array $groupNames) : \Illuminate\Database\Eloquent\Collection

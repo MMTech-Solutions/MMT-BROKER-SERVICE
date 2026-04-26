@@ -24,6 +24,10 @@
     {
       "key": "SECURITY_UUID",
       "value": "00000000-0000-0000-0000-000000000004"
+    },
+    {
+      "key": "LEVERAGE_UUID",
+      "value": "00000000-0000-0000-0000-000000000005"
     }
   ],
   "item": [
@@ -607,6 +611,227 @@
                 "trading-servers",
                 "{{TRADING_SERVER_UUID}}",
                 "synchronization"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Server Group Leverages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/trading-servers/{{TRADING_SERVER_UUID}}/server-groups/{{SERVER_GROUP_UUID}}/leverages",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "trading-servers",
+                "{{TRADING_SERVER_UUID}}",
+                "server-groups",
+                "{{SERVER_GROUP_UUID}}",
+                "leverages"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "1:100",
+                  "disabled": true
+                },
+                {
+                  "key": "value",
+                  "value": "100",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Synchronize Leverages",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leverage_ids\": [\n    \"{{LEVERAGE_UUID}}\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/trading-servers/{{TRADING_SERVER_UUID}}/server-groups/{{SERVER_GROUP_UUID}}/leverages/synchronization",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "trading-servers",
+                "{{TRADING_SERVER_UUID}}",
+                "server-groups",
+                "{{SERVER_GROUP_UUID}}",
+                "leverages",
+                "synchronization"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Leverages",
+      "item": [
+        {
+          "name": "List Leverages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/leverages",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "leverages"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "1:100",
+                  "disabled": true
+                },
+                {
+                  "key": "value",
+                  "value": "100",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Store Leverage",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"1:100\",\n  \"value\": 100\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/leverages",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "leverages"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Show Leverage",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/leverages/{{LEVERAGE_UUID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "leverages",
+                "{{LEVERAGE_UUID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Leverage",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"1:200\",\n  \"value\": 200\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/leverages/{{LEVERAGE_UUID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "leverages",
+                "{{LEVERAGE_UUID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Leverage",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/leverages/{{LEVERAGE_UUID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "leverages",
+                "{{LEVERAGE_UUID}}"
               ]
             }
           }
