@@ -2,21 +2,18 @@
 
 namespace App\Features\TradingServer\Services;
 
-use App\SharedFeatures\TradingService\Exceptions\TradingServiceException;
 use App\Features\TradingServer\Factories\SecurityRepositoryFactory;
 use App\Features\TradingServer\Factories\ServerGroupRepositoryFactory;
 use App\Features\TradingServer\Models\ServerGroup;
 use App\Features\TradingServer\Repositories\Contracts\SecurityRepositoryInterface;
 use App\Features\TradingServer\Repositories\Contracts\ServerGroupRepositoryInterface;
-use Illuminate\Support\Str;
-use Mmt\TradingServiceSdk\Platforms\MT5\Commands\ListSymbolsCommand;
-use Mmt\TradingServiceSdk\Platforms\MT5\Contracts\MT5TradingServiceInterface;
-use Mmt\TradingServiceSdk\Platforms\MT5\ObjectResponses\GroupItem;
+use Mmt\TradingServiceSdk\Platforms\MT5\ObjectResponses\HierarchyGroupItem;
 use Mmt\TradingServiceSdk\Platforms\MT5\ObjectResponses\SymbolItem;
 
 class PopulateGroupContentService
 {
     protected SecurityRepositoryInterface $securityRepository;
+
     protected ServerGroupRepositoryInterface $serverGroupRepository;
 
     public function __construct(
@@ -28,31 +25,21 @@ class PopulateGroupContentService
     }
 
     /**
-     * Puebla el contenido de un ServerGroup (securities y symbols) a partir de la API externa.
+     * Puebla el contenido de un ServerGroup (securities y symbols) a partir del grupo jerárquico del servicio externo.
      * Asume que el ServerGroup ya existe en DB y que su contenido previo fue limpiado por el llamador.
-     *
-     * @throws TradingServiceException
      */
     public function execute(
         ServerGroup $serverGroup,
-        GroupItem $groupItem,
-        string $TradingServerId,
-        MT5TradingServiceInterface $tradingService
+        HierarchyGroupItem $groupItem,
+        string $tradingServerId,
     ): void {
         $securityModelsToSync = [];
 
-        $symbols = $this->getSymbols($groupItem->name, $tradingService);
-
-        foreach ($groupItem->symbols_group as $security) {
-            $securityModel = $this->securityRepository->create($security, $TradingServerId);
+        foreach ($groupItem->categories as $categoryItem) {
+            $securityModel = $this->securityRepository->create($categoryItem->category, $tradingServerId);
             $securityModelsToSync[] = $securityModel;
 
-            $symbolsForSecurity = array_filter(
-                $symbols,
-                fn(SymbolItem $symbol) => Str::startsWith($symbol->path, substr($security, 0, -1))
-            );
-
-            $mappedSymbols = $this->mapSymbolsToModelAttributes($TradingServerId, $symbolsForSecurity);
+            $mappedSymbols = $this->mapSymbolsToModelAttributes($tradingServerId, $categoryItem->symbols);
             $symbolsCollection = $this->securityRepository->addSymbols($securityModel, $mappedSymbols);
             $this->securityRepository->syncSymbols($securityModel, $symbolsCollection);
         }
@@ -61,30 +48,15 @@ class PopulateGroupContentService
     }
 
     /**
-     * @throws TradingServiceException
-     * @return SymbolItem[]
+     * @param  SymbolItem[]  $symbols
      */
-    private function getSymbols(string $groupName, MT5TradingServiceInterface $tradingService): array
+    private function mapSymbolsToModelAttributes(string $tradingServerId, array $symbols): array
     {
-        $result = $tradingService->listSymbols(new ListSymbolsCommand(groupName: $groupName));
-
-        if (!$result->isSuccess()) {
-            throw new TradingServiceException($result->getMessage());
-        }
-
-        return $result->getData(SymbolItem::class);
-    }
-
-    /**
-     * @param SymbolItem[] $symbols
-     */
-    private function mapSymbolsToModelAttributes(string $TradingServerId, array $symbols): array
-    {
-        return array_map(fn(SymbolItem $symbol) => [
-            'name'       => $symbol->description,
-            'alpha'      => $symbol->name,
-            'stype'      => 0,
-            'trading_server_id' => $TradingServerId,
+        return array_map(fn (SymbolItem $symbol) => [
+            'name' => $symbol->description,
+            'alpha' => $symbol->name,
+            'stype' => 0,
+            'trading_server_id' => $tradingServerId,
         ], $symbols);
     }
 }

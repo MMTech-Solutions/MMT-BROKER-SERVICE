@@ -128,7 +128,7 @@ class CreateAccountUseCase
             )
         );
 
-        if ($createUserResult->isError()) {
+        if ($createUserResult->isFailure()) {
             throw new TradingServiceException($createUserResult->getMessage());
         }
 

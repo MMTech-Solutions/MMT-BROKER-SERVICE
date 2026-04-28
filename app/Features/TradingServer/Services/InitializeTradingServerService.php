@@ -2,18 +2,19 @@
 
 namespace App\Features\TradingServer\Services;
 
-use App\SharedFeatures\TradingService\Exceptions\TradingServiceException;
-use App\Features\TradingServer\Factories\TradingServerRepositoryFactory;
 use App\Features\TradingServer\Factories\ServerGroupRepositoryFactory;
-use App\Features\TradingServer\Repositories\Contracts\TradingServerRepositoryInterface;
+use App\Features\TradingServer\Factories\TradingServerRepositoryFactory;
 use App\Features\TradingServer\Repositories\Contracts\ServerGroupRepositoryInterface;
+use App\Features\TradingServer\Repositories\Contracts\TradingServerRepositoryInterface;
+use App\SharedFeatures\TradingService\Exceptions\TradingServiceException;
 use App\SharedFeatures\TradingService\Factories\TradingServiceFactory;
 use Mmt\TradingServiceSdk\Platforms\MT5\Contracts\MT5TradingServiceInterface;
-use Mmt\TradingServiceSdk\Platforms\MT5\ObjectResponses\GroupItem;
+use Mmt\TradingServiceSdk\Platforms\MT5\ObjectResponses\HierarchyGroupItem;
 
 class InitializeTradingServerService
 {
     protected ServerGroupRepositoryInterface $serverGroupRepository;
+
     protected TradingServerRepositoryInterface $TradingServerRepository;
 
     public function __construct(
@@ -23,40 +24,42 @@ class InitializeTradingServerService
         private readonly PopulateGroupContentService $populateGroupContentService,
     ) {
         $this->serverGroupRepository = $this->serverGroupRepositoryFactory->make();
-        $this->TradingServerRepository     = $this->TradingServerRepositoryFactory->make();
+        $this->TradingServerRepository = $this->TradingServerRepositoryFactory->make();
     }
 
     /**
      * @throws TradingServiceException
      */
-    public function execute(string $TradingServerId): void
+    public function execute(string $tradingServerId): void
     {
-        $TradingServer        = $this->TradingServerRepository->findById($TradingServerId);
+        $TradingServer = $this->TradingServerRepository->findById($tradingServerId);
         $tradingService = $this->tradingServiceFactory->make(
             $TradingServer->platform->toEnum(),
             $TradingServer->connection_id
         );
 
-        $groups = $this->getServerGroups($tradingService);
+        $groups = $this->getGroupHierarchyItems($tradingService);
 
         foreach ($groups as $group) {
-            $serverGroupModel = $this->serverGroupRepository->basicCreate($group->name, $TradingServerId);
-            $this->populateGroupContentService->execute($serverGroupModel, $group, $TradingServerId, $tradingService);
+            $serverGroupModel = $this->serverGroupRepository->basicCreate($group->name, $tradingServerId);
+            $this->populateGroupContentService->execute($serverGroupModel, $group, $tradingServerId);
         }
     }
 
     /**
+     * @return HierarchyGroupItem[]
+     *
      * @throws TradingServiceException
-     * @return GroupItem[]
      */
-    private function getServerGroups(MT5TradingServiceInterface $tradingService): array
+    private function getGroupHierarchyItems(MT5TradingServiceInterface $tradingService): array
     {
-        $result = $tradingService->listGroups();
+        $result = $tradingService->getGroupHierarchy();
 
-        if (!$result->isSuccess()) {
+        if ($result->isFailure()) {
             throw new TradingServiceException($result->getMessage());
         }
 
-        return $result->getData(GroupItem::class);
+        /** @var HierarchyGroupItem[] */
+        return $result->getMappedData(HierarchyGroupItem::class);
     }
 }
