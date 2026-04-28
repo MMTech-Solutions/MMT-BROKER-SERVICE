@@ -2,7 +2,7 @@
 
 namespace App\Features\TradingServer\Services;
 
-use App\Features\TradingServer\Exceptions\TradingServiceException;
+use App\SharedFeatures\TradingService\Exceptions\TradingServiceException;
 use App\Features\TradingServer\Factories\SecurityRepositoryFactory;
 use App\Features\TradingServer\Factories\ServerGroupRepositoryFactory;
 use App\Features\TradingServer\Models\ServerGroup;

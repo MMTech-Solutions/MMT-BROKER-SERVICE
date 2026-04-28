@@ -1,5 +1,7 @@
 <?php
 
+use App\SharedFeatures\EventBus\Console\KafkaConsumerCommand;
+use App\SharedFeatures\Http\Middleware\ResolveUserFromGatewayHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,8 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'gateway.auth.user' => ResolveUserFromGatewayHeaders::class,
+        ]);
     })
+    ->withCommands([KafkaConsumerCommand::class])
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (MmtException $e) {
             return $e->render();

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Features\TradingServer\Exceptions;
+namespace App\SharedFeatures\TradingService\Exceptions;
 
 use MMT\LaravelFeatureScaffold\Exceptions\MmtException;
 use Throwable;

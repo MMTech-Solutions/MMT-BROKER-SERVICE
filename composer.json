@@ -18,6 +18,7 @@
         "php": "^8.3",
         "laravel/framework": "^13.0",
         "laravel/tinker": "^3.0",
+        "mateusjunges/laravel-kafka": "^2.11",
         "mmt/laravel-feature-scaffold": "^1.2",
         "mmt/laravel-trading-service-sdk": "@dev"
     },

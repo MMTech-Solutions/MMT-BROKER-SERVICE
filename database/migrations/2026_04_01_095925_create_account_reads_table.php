@@ -12,8 +12,8 @@ return new class extends Migration
             $table->id();
 
             $table->foreignUuid('account_id')
-                ->constrained('accounts')
-                ->onDelete('cascade');
+                ->constrained()
+                ->cascadeOnDelete();
 
             $table->decimal('balance');
             $table->decimal('equity');

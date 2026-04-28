@@ -12,9 +12,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @property string $id
+ * @property string $trading_server_id
  * @property string $name
  * @property string $meta_name
- * @property string $trading_server_id
+ * @property string $description
+ * @property array $currency
+ * @property int $account_limits
+ * @property int $min_deposit
+ * @property int $min_withdrawal
+ * @property int $default_credit
+ * @property int $currency_denomination_factor
+ * @property boolean $is_private
+ * @property boolean $is_default
+ * @property boolean $is_active
+ * @property boolean $is_deposit_enabled
+ * @property boolean $is_withdrawal_enabled
+ * @property boolean $use_countries_restrictions
+ * @property array $restricted_countries
  * @property Collection<Security> $securities
  * @property Collection<Symbol> $symbols
  * @property Collection<Leverage> $leverages
@@ -27,8 +41,30 @@ class ServerGroup extends Model
     protected $fillable = [
         'name',
         'meta_name',
+        'description',
+        'currency',
         'trading_server_id',
+        'account_limits',
+        'min_deposit',
+        'min_withdrawal',
+        'default_credit',
+        'currency_denomination_factor',
+        'is_private',
+        'is_default',
+        'is_active',
+        'is_deposit_enabled',
+        'is_withdrawal_enabled',
+        'use_countries_restrictions',
+        'restricted_countries',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'currency' => 'array',
+            'restricted_countries' => 'array',
+        ];
+    }
 
     public function securities(): BelongsToMany
     {
