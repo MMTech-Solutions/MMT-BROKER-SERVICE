@@ -28,6 +28,22 @@
     {
       "key": "LEVERAGE_UUID",
       "value": "00000000-0000-0000-0000-000000000005"
+    },
+    {
+      "key": "X_USER",
+      "value": "{\"id\":\"00000000-0000-0000-0000-000000000000\",\"name\":\"John\",\"lastname\":\"Doe\",\"username\":\"johndoe\",\"full_name\":\"John Doe\",\"email\":\"johndoe@example.com\",\"phone\":\"1234567890\",\"sex\":\"male\",\"birth\":\"1990-01-01\",\"referer\":\"referer\",\"iblink_id\":\"00000000-0000-0000-0000-000000000001\",\"ibratio\":\"1.0\",\"discountref\":\"0\",\"country_id\":1,\"country_iso\":\"ES\",\"state\":\"1\",\"city\":\"1\",\"street\":\"Some street\",\"zipcode\":\"1234567890\",\"address\":\"Some address\",\"langs_id\":1,\"status\":1,\"client\":\"1\",\"client_type\":\"user\",\"security2fa\":[],\"roles\":[\"admin\"],\"abilities\":{\"platform\":[\"view\",\"create\",\"update\",\"delete\"]}}"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const xUser = pm.collectionVariables.get('X_USER');",
+          "pm.request.headers.upsert({ key: 'X-USER', value: xUser });"
+        ]
+      }
     }
   ],
   "item": [

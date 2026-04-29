@@ -2,6 +2,7 @@
 
 namespace App\Features\Platform\Http\V1\Requests;
 
+use App\SharedFeatures\Application\UserContext;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -9,6 +10,15 @@ use Illuminate\Validation\Validator;
 
 class UpdatePlatformRequest extends FormRequest
 {
+    public function __construct(
+        private readonly UserContext $userContext,
+    ) {}
+
+    public function authorize(): bool
+    {
+        return $this->userContext->adminCan('platform.update');
+    }
+
     /**
      * @return array<string, mixed>
      */

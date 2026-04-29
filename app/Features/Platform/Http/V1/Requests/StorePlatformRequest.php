@@ -2,15 +2,20 @@
 
 namespace App\Features\Platform\Http\V1\Requests;
 
+use App\SharedFeatures\Application\UserContext;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 use Mmt\TradingServiceSdk\Enums\PlatformEnum;
 
 class StorePlatformRequest extends FormRequest
 {
+    public function __construct(
+        private readonly UserContext $userContext,
+    ) {}
+
     public function authorize(): bool
     {
-        return true;
+        return $this->userContext->adminCan('platform.create');
     }
 
     /**

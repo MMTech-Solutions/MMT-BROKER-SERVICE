@@ -20,7 +20,7 @@ use App\Features\TradingServer\Http\V1\Controllers\{
 };
 
 Route::prefix('broker')->group(function () {
-    Route::prefix('v1')->group(function () {
+    Route::middleware('gateway.auth.user')->prefix('v1')->group(function () {
 
         Route::prefix('platforms')->group(function () {
             Route::get('/', ListPlatformsController::class);
@@ -60,7 +60,7 @@ Route::prefix('broker')->group(function () {
             Route::delete('/{leverageUuid}', DeleteLeverageController::class);
         });
 
-        Route::middleware('gateway.auth.user')->prefix('accounts')->group(function () {
+        Route::prefix('accounts')->group(function () {
             Route::post('/', CreateAccountController::class);
         });
     });

@@ -42,6 +42,7 @@ final class User
         public readonly array   $roles,
         // public readonly string  $createdAt,
         // public readonly string  $updatedAt,
+        public readonly array   $abilities,
     ) {}
 
     public static function fromArray(array $data): self
@@ -82,6 +83,7 @@ final class User
             // theme: $data['theme'],
             security2fa: $data['security2fa'],
             roles: $data['roles'],
+            abilities: $data['abilities'],
             // createdAt: $data['created_at'],
             // updatedAt: $data['updated_at'],
         );

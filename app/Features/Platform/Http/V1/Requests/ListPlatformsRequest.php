@@ -2,13 +2,18 @@
 
 namespace App\Features\Platform\Http\V1\Requests;
 
+use App\SharedFeatures\Application\UserContext;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ListPlatformsRequest extends FormRequest
 {
+    public function __construct(
+        private readonly UserContext $userContext,
+    ) {}
+
     public function authorize(): bool
     {
-        return true;
+        return $this->userContext->adminCan('platform.view');
     }
 
     /**

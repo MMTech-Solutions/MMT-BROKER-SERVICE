@@ -17,42 +17,15 @@ class ResolveUserFromGatewayHeaders
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // $required = ['x-user']; // ejemplo
-        // foreach ($required as $header) {
-        //     if (!$request->headers->has($header) || blank($request->header($header))) {
-        //         throw new UnauthenticatedException();
-        //     }
-        // }
-
-        $request->attributes->set('user', User::fromArray([
-            'id' => '00000000-0000-0000-0000-000000000000',
-            'name' => 'John',
-            'lastname' => 'Doe',
-            'username' => 'johndoe',
-            'full_name' => 'John Doe',
-            'email' => 'johndoe@example.com',
-            'phone' => '1234567890',
-            'sex' => 'male',
-            'birth' => '1990-01-01',
-            'referer' => 'referer',
-            'iblink_id' => '00000000-0000-0000-0000-000000000001',
-            'ibratio' => '1.0',
-            'discountref' => '0',
-            'country_id' => 1,
-            'country_iso' => 'ES',
-            'state' => '1',
-            'city' => '1',
-            'street' => 'Some street',
-            'zipcode' => '1234567890',
-            'address' => 'Some address',
-            'langs_id' => 1,
-            'status' => 1,
-            'client' => '1',
-            'client_type' => 'user',
-            'security2fa' => [],
-            'roles' => [],
-        ]));
+        $required = ['x-user']; // ejemplo
+        foreach ($required as $header) {
+            if (!$request->headers->has($header) || blank($request->header($header))) {
+                throw new UnauthenticatedException();
+            }
+        }
         
+        $request->attributes->set('user', User::fromArray(json_decode($request->header('x-user'), true)));
+
         return $next($request);
     }
 }
