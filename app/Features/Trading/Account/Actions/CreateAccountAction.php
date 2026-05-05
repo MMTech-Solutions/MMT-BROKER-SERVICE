@@ -5,7 +5,7 @@ namespace App\Features\Trading\Account\Actions;
 use App\Features\Trading\Account\Factories\AccountRepositoryFactory;
 use App\Features\Trading\Account\Models\Account;
 use App\Features\Trading\Account\Repositories\Contracts\AccountRepositoryInterface;
-use App\Features\Trading\TradingServer\DTOs\LeverageDTO;
+use App\Features\Trading\Leverage\DTOs\LeverageDTO;
 use App\Features\Trading\TradingServer\DTOs\ServerGroupDTO;
 use App\SharedFeatures\User\User;
 use App\SharedFeatures\TradingService\Exceptions\TradingServiceException;

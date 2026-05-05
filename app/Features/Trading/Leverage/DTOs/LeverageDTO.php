@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Features\Trading\TradingServer\DTOs;
+namespace App\Features\Trading\Leverage\DTOs;
 
 use Spatie\LaravelData\Data;
 

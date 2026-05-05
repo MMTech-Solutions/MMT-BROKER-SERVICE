@@ -59,6 +59,11 @@ Los submódulos de **`Trading`** pueden inyectarse **factories**, **repositorios
 
 Los **demás** features **no** deben acoplarse a internals de `Trading`; siguen la regla general de esta documentación y solo consumen **servicios públicos** que `Trading` exponga explícitamente para la frontera externa.
 
+### DTOs y optimización de `Services` en `Trading`
+
+- **DTOs**: deben vivir en el submódulo que **posee el concepto** (ej. `LeverageDTO` en `Leverage/DTOs`, no en `TradingServer/DTOs`).
+- **Refactor pendiente**: inventariar `Services/` que solo delegan en un repositorio o en una consulta puntual; valorar sustituirlos por **QueryObject**, método en **Repository** o **Action** (reglas ya definidas arriba). Candidatos típicos a revisar: `Find*ByIdService`, `FindDefaultServerGroupService`, `ListServerGroupLeveragesService`, `FindPlatformByIdService`, `FindLeverageByIdService`, `CreateDefaultAccountService`. Conservar **Service** cuando agrupe varios pasos, efectos laterales o una **API estable** entre submódulos.
+
 ## Actions y QueryObjects (por feature)
 
 Además de **UseCases**, **Repositories** y **Services**, un feature puede definir **Actions** y **QueryObjects** para acotar responsabilidades sin inflar el UseCase ni el repositorio.
