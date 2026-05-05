@@ -1,31 +1,31 @@
 <?php
 
-use App\Features\Account\Http\V1\Controllers\CreateAccountController;
-use App\Features\Leverage\Http\V1\Controllers\DeleteLeverageController;
-use App\Features\Leverage\Http\V1\Controllers\ListLeveragesController;
-use App\Features\Leverage\Http\V1\Controllers\ListServerGroupLeveragesController;
-use App\Features\Leverage\Http\V1\Controllers\ShowLeverageController;
-use App\Features\Leverage\Http\V1\Controllers\StoreLeverageController;
-use App\Features\Leverage\Http\V1\Controllers\SynchronizeLeveragesController;
-use App\Features\Leverage\Http\V1\Controllers\UpdateLeverageController;
-use App\Features\Platform\Http\V1\Controllers\DeletePlatformController;
-use App\Features\Platform\Http\V1\Controllers\ListAvailablePlatformsController;
-use App\Features\Platform\Http\V1\Controllers\ListPlatformsController;
-use App\Features\Platform\Http\V1\Controllers\ShowPlatformController;
-use App\Features\Platform\Http\V1\Controllers\StorePlatformController;
-use App\Features\Platform\Http\V1\Controllers\UpdatePlatformController;
-use App\Features\TradingServer\Http\V1\Controllers\DeleteTradingServerController;
-use App\Features\TradingServer\Http\V1\Controllers\ListSecuritiesController;
-use App\Features\TradingServer\Http\V1\Controllers\ListSecuritySymbolsController;
-use App\Features\TradingServer\Http\V1\Controllers\ListServerGroupsController;
-use App\Features\TradingServer\Http\V1\Controllers\ListServerGroupSecuritiesController;
-use App\Features\TradingServer\Http\V1\Controllers\ListSymbolsController;
-use App\Features\TradingServer\Http\V1\Controllers\ListTradingServerEnvironmentsController;
-use App\Features\TradingServer\Http\V1\Controllers\ListTradingServersController;
-use App\Features\TradingServer\Http\V1\Controllers\ShowTradingServerController;
-use App\Features\TradingServer\Http\V1\Controllers\StoreTradingServerController;
-use App\Features\TradingServer\Http\V1\Controllers\SynchronizeTradingServerController;
-use App\Features\TradingServer\Http\V1\Controllers\UpdateTradingServerController;
+use App\Features\Trading\Account\Http\V1\Controllers\CreateAccountController;
+use App\Features\Trading\Leverage\Http\V1\Controllers\DeleteLeverageController;
+use App\Features\Trading\Leverage\Http\V1\Controllers\ListLeveragesController;
+use App\Features\Trading\Leverage\Http\V1\Controllers\ListServerGroupLeveragesController;
+use App\Features\Trading\Leverage\Http\V1\Controllers\ShowLeverageController;
+use App\Features\Trading\Leverage\Http\V1\Controllers\StoreLeverageController;
+use App\Features\Trading\Leverage\Http\V1\Controllers\SynchronizeLeveragesController;
+use App\Features\Trading\Leverage\Http\V1\Controllers\UpdateLeverageController;
+use App\Features\Trading\Platform\Http\V1\Controllers\DeletePlatformController;
+use App\Features\Trading\Platform\Http\V1\Controllers\ListAvailablePlatformsController;
+use App\Features\Trading\Platform\Http\V1\Controllers\ListPlatformsController;
+use App\Features\Trading\Platform\Http\V1\Controllers\ShowPlatformController;
+use App\Features\Trading\Platform\Http\V1\Controllers\StorePlatformController;
+use App\Features\Trading\Platform\Http\V1\Controllers\UpdatePlatformController;
+use App\Features\Trading\TradingServer\Http\V1\Controllers\DeleteTradingServerController;
+use App\Features\Trading\TradingServer\Http\V1\Controllers\ListSecuritiesController;
+use App\Features\Trading\TradingServer\Http\V1\Controllers\ListSecuritySymbolsController;
+use App\Features\Trading\TradingServer\Http\V1\Controllers\ListServerGroupsController;
+use App\Features\Trading\TradingServer\Http\V1\Controllers\ListServerGroupSecuritiesController;
+use App\Features\Trading\TradingServer\Http\V1\Controllers\ListSymbolsController;
+use App\Features\Trading\TradingServer\Http\V1\Controllers\ListTradingServerEnvironmentsController;
+use App\Features\Trading\TradingServer\Http\V1\Controllers\ListTradingServersController;
+use App\Features\Trading\TradingServer\Http\V1\Controllers\ShowTradingServerController;
+use App\Features\Trading\TradingServer\Http\V1\Controllers\StoreTradingServerController;
+use App\Features\Trading\TradingServer\Http\V1\Controllers\SynchronizeTradingServerController;
+use App\Features\Trading\TradingServer\Http\V1\Controllers\UpdateTradingServerController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('broker')->group(function () {

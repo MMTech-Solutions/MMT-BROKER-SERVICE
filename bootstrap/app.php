@@ -17,7 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withEvents(
         discover: [
-            __DIR__.'/../app/Features/*/Listeners'
+            __DIR__.'/../app/Features/*/Listeners',
+            __DIR__.'/../app/Features/*/*/Listeners',
         ]
     )
     ->withMiddleware(function (Middleware $middleware): void {

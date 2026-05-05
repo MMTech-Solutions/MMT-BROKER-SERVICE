@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Features\Account\KafkaListeners\ClientOnboardingListener;
+use App\Features\Trading\Account\KafkaListeners\ClientOnboardingListener;
 
 return [
     'consumer' => [

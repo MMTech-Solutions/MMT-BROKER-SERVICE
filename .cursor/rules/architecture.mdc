@@ -7,6 +7,8 @@ alwaysApply: true
 
 El proyecto sigue **feature-first**: cada capacidad de negocio vive bajo `app/Features/<FeatureName>/`. No se organiza por capa técnica global (todos los controllers juntos), sino por feature.
 
+Algunos dominios se agrupan en un **feature compuesto** con submódulos (ver «Feature `Trading`»).
+
 ## Estructura de un feature
 
 Cada feature debe respetar esta estructura de carpetas y namespaces:
@@ -18,6 +20,8 @@ app/Features/<FeatureName>/
 │   ├── Commands/               # DTOs de entrada (mapeo desde Request)
 │   ├── Requests/               # Form Requests de Laravel
 │   └── Resources/              # API Resources (salida JSON)
+├── Actions/                    # Acciones de aplicación (comando único; opcional según feature)
+├── QueryObjects/               # Consultas de lectura encapsuladas (opcional según feature)
 ├── UseCases/                   # Casos de uso (orquestación)
 ├── Repositories/               # Implementaciones de persistencia
 │   └── Contracts/              # Interfaces de repositorios
@@ -32,7 +36,60 @@ app/Features/<FeatureName>/
 - **Shared**: Código transversal va en `app/Shared/` (ej. `App\Shared\Support\ActionResult`).
 - **Providers**: Si un feature necesita binding/registros propios, usar `app/Providers/<Feature>Provider.php` y registrarlo en `bootstrap/providers.php`.
 
+## Feature `Trading` (submódulos)
+
+El dominio de trading/broker agrupa varios submódulos bajo un único feature de primer nivel:
+
+```
+app/Features/Trading/
+├── Account/
+├── Leverage/
+├── Platform/
+├── TradingServer/
+└── ...
+```
+
+- **Namespace**: `App\Features\Trading\<Submódulo>\<Capa>\...` (ej. `App\Features\Trading\Account\UseCases\CreateAccountUseCase`).
+- Cada submódulo replica la misma estructura interna que un feature estándar (`Http/V1`, `UseCases`, `Repositories`, `Actions`, `QueryObjects`, etc.).
+- **Descubrimiento de listeners**: además de `app/Features/*/Listeners`, registrar rutas anidadas para submódulos (`app/Features/*/*/Listeners`); ver `bootstrap/app.php`.
+
+### Comunicación dentro de `Trading`
+
+Los submódulos de **`Trading`** pueden inyectarse **factories**, **repositorios** y **modelos** entre sí cuando el caso de uso lo requiera (mismo bounded context). Los **servicios** en `Services/` siguen siendo útiles como fachada legible o API estable entre submódulos.
+
+Los **demás** features **no** deben acoplarse a internals de `Trading`; siguen la regla general de esta documentación y solo consumen **servicios públicos** que `Trading` exponga explícitamente para la frontera externa.
+
+## Actions y QueryObjects (por feature)
+
+Además de **UseCases**, **Repositories** y **Services**, un feature puede definir **Actions** y **QueryObjects** para acotar responsabilidades sin inflar el UseCase ni el repositorio.
+
+### Actions (`Actions/`)
+
+- **Qué son**: clases que representan **una operación de aplicación concreta** (escritura, efecto lateral o regla de negocio bien acotada), invocable desde un **UseCase**, **Job** u otro orquestador del **mismo** feature.
+- **Cuándo usarlas**: cuando un caso de uso repite el mismo paso, o un paso merece nombre y tests propios (ej. validar límites, crear entidad asociada, publicar evento tras persistir). Sustituyen “servicios genéricos” que solo existían para un único flujo.
+- **Qué no son**: no sustituyen al **UseCase** como entrada HTTP (el Controller sigue llamando al UseCase). No son la capa HTTP; no reciben `Request` salvo que el proyecto decida explícitamente un patrón común y tipado.
+- **Dependencias**: igual que UseCases/Services del feature; **Factories** para repositorios, no interfaces de repositorio directas. No referenciar HTTP.
+- **Naming**: verbo o frase de negocio + sufijo `Action` (ej. `CreateAccountAction`, `CheckAccountLimitsAction`).
+
+### QueryObjects (`QueryObjects/`)
+
+- **Qué son**: clases que encapsulan **una consulta de lectura** (consulta a BD, agregación o proyección) con un propósito único y nombre explícito.
+- **Cuándo usarlas**: cuando un listado o lectura es suficientemente específica como para no merecer un método más en el contrato del repositorio, o cuando varios UseCases reutilizan la misma consulta. El repositorio puede invocarlas internamente, o el UseCase puede hacerlo si el contrato del repo lo expone; lo importante es **centralizar el SQL/query builder** en un solo sitio.
+- **Qué no son**: no sustituyen al **Repository** como dueño del acceso a datos del agregado; los modelos Eloquent siguen usándose desde repositorios/query objects del feature, no desde UseCases.
+- **Naming**: propósito de la lectura + sufijo `QueryObject` (ej. `ListOpenOrdersQueryObject`, `SetInitialBalanceQueryObject` si la operación modelada es una consulta/actualización puntual encapsulada según el diseño del feature).
+
+### Relación con otras capas
+
+| Capa            | Rol principal |
+|-----------------|---------------|
+| **UseCase**     | Orquesta el flujo del caso de uso (HTTP o dominio); compone Actions, servicios, repos, QueryObjects según haga falta. |
+| **Action**      | Un paso atómico o cohesionado de ese flujo (sobre todo comandos y reglas). |
+| **QueryObject** | Una consulta de lectura (o lectura+forma concreta de resultado) reutilizable o muy específica. |
+| **Repository**  | Persistencia del agregado y contrato de acceso a datos; puede delegar en QueryObjects para consultas concretas. |
+
 ## Comunicación entre features
+
+**Excepción:** los submódulos agrupados bajo `Trading` (ver arriba). Entre **features distintos** (ej. `Trading` frente a `Finance`), la regla siguiente aplica íntegramente.
 
 Un feature **no** debe inyectar directamente **factories**, **repositorios** ni **modelos** de otro feature. Eso acopla fronteras y rompe el aislamiento del dominio.
 
@@ -45,7 +102,7 @@ Si un feature necesita datos o comportamiento de otro, el feature **proveedor** 
 
 1. **Request** → **Controller** recibe un `Form Request` y lo convierte en un **Command** (método estático `Command::fromRequest($request)`).
 2. **Controller** inyecta el **UseCase** y llama `$useCase->execute($command)`.
-3. **UseCase** orquesta repositorios, factories y servicios; no contiene lógica HTTP.
+3. **UseCase** orquesta repositorios, factories, **Actions**, **QueryObjects** y servicios; no contiene lógica HTTP.
 4. **Controller** transforma el resultado con **Resource** (o `Resource::collection`) y devuelve la respuesta (ej. con `ApiResponse::success`).
 
 Ejemplo de cadena: `ListEventDefinitionsRequest` → `ListEventDefinitionsCommand::fromRequest()` → `ListEventDefinitionsUseCase::execute($command)` → repositorio obtenido vía factory → `EventDefinitionResource::collection()`.
@@ -114,8 +171,8 @@ Ejemplo de cadena: `ListEventDefinitionsRequest` → `ListEventDefinitionsComman
 
 ## Qué evitar
 
-- No poner lógica de negocio en Controllers; debe estar en UseCases o Services.
+- No poner lógica de negocio en Controllers; debe estar en UseCases, **Actions**, **Services** o **Repositories** (consultas puntuales vía **QueryObjects** cuando aplique).
 - No inyectar interfaces de repositorio en UseCases, Services o Jobs; inyectar siempre la Factory y obtener el repositorio con `make()`.
-- No inyectar factories, repositorios ni modelos de **otro** feature; usar los **servicios especializados** que ese feature exponga en `Services/`.
+- No inyectar factories, repositorios ni modelos de **otro** feature (entre features distintos); dentro del feature `Trading`, los submódulos pueden compartir factories/repos según «Comunicación dentro de `Trading`». Hacia fuera, usar los **servicios especializados** que ese feature exponga en `Services/`.
 - No referenciar capa HTTP (Requests, Controllers) desde UseCases o Repositories.
 - No crear carpetas por capa a nivel de `app/` (ej. `app/Controllers` global); todo va dentro de cada feature en `app/Features/`.

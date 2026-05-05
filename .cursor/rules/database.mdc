@@ -7,7 +7,7 @@ alwaysApply: true
 
 ## Modelos
 
-- Los modelos viven en `App\Features\<Feature>\Models\` (ver arquitectura). Un modelo por entidad del feature.
+- Los modelos viven en `App\Features\<Feature>\Models\` (ver arquitectura). En el feature compuesto `Trading`, en `App\Features\Trading\<Submódulo>\Models\`. Un modelo por entidad del submódulo o feature.
 - Usar `$fillable` (o `$guarded` de forma explícita); no dejar modelos totalmente asignables.
 - Definir `$casts` para fechas, JSON, booleanos y tipos que deban serializarse.
 - Relaciones: declarar en el modelo; nombrar de forma clara (`belongsTo`, `hasMany`, etc.). No cargar relaciones “por si acaso” en el modelo (el eager loading se decide en repositorio/use case).

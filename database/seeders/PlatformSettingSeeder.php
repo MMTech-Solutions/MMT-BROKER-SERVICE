@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Features\Platform\Enums\PlatformEnviroment;
-use App\Features\Platform\Models\Platform;
-use App\Features\Platform\Models\PlatformSetting;
+use App\Features\Trading\Platform\Enums\PlatformEnviroment;
+use App\Features\Trading\Platform\Models\Platform;
+use App\Features\Trading\Platform\Models\PlatformSetting;
 use Illuminate\Database\Seeder;
 
 class PlatformSettingSeeder extends Seeder
