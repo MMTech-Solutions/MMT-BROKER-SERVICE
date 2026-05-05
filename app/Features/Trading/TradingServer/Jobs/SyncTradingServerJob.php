@@ -2,8 +2,8 @@
 
 namespace App\Features\Trading\TradingServer\Jobs;
 
+use App\Features\Trading\TradingServer\Actions\SyncTradingServerAction;
 use App\Features\Trading\TradingServer\Events\TradingServerSyncDoneEvent;
-use App\Features\Trading\TradingServer\Services\SyncTradingServerService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -19,9 +19,9 @@ class SyncTradingServerJob implements ShouldQueue
     ) {}
 
     public function handle(
-        SyncTradingServerService $syncTradingServerService,
+        SyncTradingServerAction $syncTradingServerAction,
     ): void {
-        $syncTradingServerService->execute($this->tradingServerId);
+        $syncTradingServerAction->execute($this->tradingServerId);
         TradingServerSyncDoneEvent::dispatch(
             $this->tradingServerId,
             $this->userId,

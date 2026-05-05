@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Features\Trading\TradingServer\Services;
+namespace App\Features\Trading\TradingServer\Actions;
 
 use App\Features\Trading\TradingServer\Exceptions\ServerGroupNotFoundException;
 use App\Features\Trading\TradingServer\Factories\ServerGroupRepositoryFactory;
 use App\Features\Trading\TradingServer\Repositories\Contracts\ServerGroupRepositoryInterface;
 
-class SyncServerGroupLeveragesService
+class SyncServerGroupLeveragesAction
 {
     private ServerGroupRepositoryInterface $serverGroupRepository;
 
@@ -19,7 +19,7 @@ class SyncServerGroupLeveragesService
     public function execute(string $serverGroupId, array $leverageIds): void
     {
         $serverGroup = $this->serverGroupRepository->findByUuid($serverGroupId)
-            ?? throw new ServerGroupNotFoundException();
+            ?? throw new ServerGroupNotFoundException;
 
         $serverGroup->leverages()->sync($leverageIds);
     }

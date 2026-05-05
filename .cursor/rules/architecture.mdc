@@ -55,59 +55,68 @@ app/Features/Trading/
 
 ### Comunicación dentro de `Trading`
 
-Los submódulos de **`Trading`** pueden inyectarse **factories**, **repositorios** y **modelos** entre sí cuando el caso de uso lo requiera (mismo bounded context). Los **servicios** en `Services/` siguen siendo útiles como fachada legible o API estable entre submódulos.
+Los submódulos de **`Trading`** pueden inyectarse **factories**, **repositorios** y **modelos** entre sí cuando el caso de uso lo requiera (mismo bounded context). Para comunicación **entre submódulos** (ej. `Account` → `TradingServer`, `Leverage` → `TradingServer`) se usan **Factories**, **Repositories** (acceso vía factory del submódulo dueño), **Actions** y **QueryObjects** únicamente cuando cumplan el criterio de QueryObject (ver más abajo). **No** se usa una clase en `Services/` como “API” entre submódulos: el rol de **frontera + DTOs entre features de primer nivel** es exclusivo de los **Services** hacia **fuera** del feature `Trading` (ver «Fronteras: submódulos vs features»).
 
 Los **demás** features **no** deben acoplarse a internals de `Trading`; siguen la regla general de esta documentación y solo consumen **servicios públicos** que `Trading` exponga explícitamente para la frontera externa.
 
-### DTOs y optimización de `Services` en `Trading`
+### DTOs y `Services` en `Trading`
 
 - **DTOs**: deben vivir en el submódulo que **posee el concepto** (ej. `LeverageDTO` en `Leverage/DTOs`, no en `TradingServer/DTOs`).
-- **Refactor pendiente**: inventariar `Services/` que solo delegan en un repositorio o en una consulta puntual; valorar sustituirlos por **QueryObject**, método en **Repository** o **Action** (reglas ya definidas arriba). Candidatos típicos a revisar: `Find*ByIdService`, `FindDefaultServerGroupService`, `ListServerGroupLeveragesService`, `FindPlatformByIdService`, `FindLeverageByIdService`, `CreateDefaultAccountService`. Conservar **Service** cuando agrupe varios pasos, efectos laterales o una **API estable** entre submódulos.
+- **Refactor pendiente**: inventariar `Services/` bajo submódulos de `Trading` que solo delegan en un repositorio o en una lectura puntual; sustituirlos por **método en Repository**, **Action** o **QueryObject** solo si aplica el criterio de QueryObject (alto rendimiento y/o filtrado). Candidatos típicos a revisar: `Find*ByIdService`, `FindPlatformByIdService`, `FindLeverageByIdService` (en `TradingServer`/`Leverage`/`Platform` según corresponda). Una clase `*Service` dentro de un submódulo puede seguir existiendo como **orquestación local** de ese submódulo (ej. varios pasos en un solo lugar), pero **no** sustituye la regla de frontera entre features (eso siguen siendo Services expuestos por `Trading` hacia otros features, con DTOs).
+
+### Fronteras: submódulos vs features
+
+| Ámbito | Mecanismos permitidos | Prohibido |
+|--------|------------------------|-----------|
+| **Entre submódulos del mismo feature** (p. ej. dentro de `Trading`) | **Factories**, **Repositories**, **Actions**, **QueryObjects** (solo según criterio de QueryObject) | Usar `Services/` como capa de “contrato” entre submódulos; cruzar **features de primer nivel** con factories/repos/actions/query objects |
+| **Entre features de primer nivel** (p. ej. `Trading` y `Events`) | El feature proveedor expone **Services** en su `Services/` que **transportan DTOs** (y encapsulan integración) | Inyectar en un feature **factories**, **repositorios**, **modelos**, **Actions** o **QueryObjects** de otro feature |
+
+Las **Actions**, **QueryObjects**, **Factories** y **Repositories** cruzan fronteras **solo** entre submódulos de un mismo feature compuesto (como `Trading`), **nunca** entre dos features de primer nivel distintos.
 
 ## Actions y QueryObjects (por feature)
 
-Además de **UseCases**, **Repositories** y **Services**, un feature puede definir **Actions** y **QueryObjects** para acotar responsabilidades sin inflar el UseCase ni el repositorio.
+Además de **UseCases**, **Repositories** y **Services**, un feature puede definir **Actions** y **QueryObjects** para acotar responsabilidades sin inflar el UseCase ni el repositorio. La carpeta `Services/` es el lugar habitual de la **frontera entre features de primer nivel** (servicios que **transportan DTOs**); en un feature compuesto como `Trading`, **no** debe usarse como capa de contrato **entre submódulos** (usar Actions, Repositories y Factories; ver «Comunicación dentro de `Trading`»).
 
 ### Actions (`Actions/`)
 
-- **Qué son**: clases que representan **una operación de aplicación concreta** (escritura, efecto lateral o regla de negocio bien acotada), invocable desde un **UseCase**, **Job** u otro orquestador del **mismo** feature.
+- **Qué son**: clases que representan **una operación de aplicación concreta** (escritura, efecto lateral o regla de negocio bien acotada), invocable desde un **UseCase**, **Job** u otro orquestador del **mismo** feature (en `Trading`, también desde UseCases de **otro submódulo** del mismo feature compuesto).
 - **Cuándo usarlas**: cuando un caso de uso repite el mismo paso, o un paso merece nombre y tests propios (ej. validar límites, crear entidad asociada, publicar evento tras persistir). Sustituyen “servicios genéricos” que solo existían para un único flujo.
 - **Qué no son**: no sustituyen al **UseCase** como entrada HTTP (el Controller sigue llamando al UseCase). No son la capa HTTP; no reciben `Request` salvo que el proyecto decida explícitamente un patrón común y tipado.
-- **Dependencias**: igual que UseCases/Services del feature; **Factories** para repositorios, no interfaces de repositorio directas. No referenciar HTTP.
+- **Dependencias**: igual que UseCases del feature o submódulo; **Factories** para repositorios, no interfaces de repositorio directas. No referenciar HTTP. No invocar **Actions** de otro feature de primer nivel (sí entre submódulos de `Trading` si el caso de uso lo requiere).
 - **Naming**: verbo o frase de negocio + sufijo `Action` (ej. `CreateAccountAction`, `CheckAccountLimitsAction`).
 
 ### QueryObjects (`QueryObjects/`)
 
 - **Qué son**: clases que encapsulan **una consulta de lectura** (consulta a BD, agregación o proyección) con un propósito único y nombre explícito.
-- **Cuándo usarlas**: cuando un listado o lectura es suficientemente específica como para no merecer un método más en el contrato del repositorio, o cuando varios UseCases reutilizan la misma consulta. El repositorio puede invocarlas internamente, o el UseCase puede hacerlo si el contrato del repo lo expone; lo importante es **centralizar el SQL/query builder** en un solo sitio.
-- **Qué no son**: no sustituyen al **Repository** como dueño del acceso a datos del agregado; los modelos Eloquent siguen usándose desde repositorios/query objects del feature, no desde UseCases.
+- **Cuándo usarlas**: reservadas para consultas de **alto rendimiento** y/o **filtrado** que justifique aislar la query (complejidad, optimización, lecturas muy específicas reutilizadas). **El resto de lecturas** —lookups por id, listados paginados con filtros habituales, consultas del agregado— viven en el **Repository** (métodos del contrato / implementación). No usar un QueryObject como sustituto genérico de un método de repositorio “por tener la consulta en otra clase”.
+- **Relación con el repositorio**: el repositorio sigue siendo el dueño del acceso al agregado; puede **delegar** internamente en un QueryObject cuando el caso encaje con el criterio anterior. Los modelos Eloquent se usan desde repositorios o desde query objects invocados por ellos, no desde UseCases.
 - **Naming**: propósito de la lectura + sufijo `QueryObject` (ej. `ListOpenOrdersQueryObject`, `SetInitialBalanceQueryObject` si la operación modelada es una consulta/actualización puntual encapsulada según el diseño del feature).
 
 ### Relación con otras capas
 
 | Capa            | Rol principal |
 |-----------------|---------------|
-| **UseCase**     | Orquesta el flujo del caso de uso (HTTP o dominio); compone Actions, servicios, repos, QueryObjects según haga falta. |
+| **UseCase**     | Orquesta el flujo del caso de uso (HTTP o dominio); compone Actions, repos (y QueryObjects vía repo o criterio QO), y **Services** solo como frontera hacia **otros** features. |
 | **Action**      | Un paso atómico o cohesionado de ese flujo (sobre todo comandos y reglas). |
-| **QueryObject** | Una consulta de lectura (o lectura+forma concreta de resultado) reutilizable o muy específica. |
-| **Repository**  | Persistencia del agregado y contrato de acceso a datos; puede delegar en QueryObjects para consultas concretas. |
+| **QueryObject** | Consulta de lectura aislada por **rendimiento** y/o **filtrado** relevante; lo demás va en el **Repository**. |
+| **Repository**  | Persistencia del agregado y contrato de acceso a datos; puede delegar en QueryObjects cuando el caso sea de **rendimiento** o **filtrado** según el criterio de QueryObject. |
 
 ## Comunicación entre features
 
-**Excepción:** los submódulos agrupados bajo `Trading` (ver arriba). Entre **features distintos** (ej. `Trading` frente a `Finance`), la regla siguiente aplica íntegramente.
+**Excepción:** los submódulos agrupados bajo `Trading` (ver arriba y «Fronteras: submódulos vs features»). Entre **features distintos** (ej. `Trading` frente a `Finance`), la regla siguiente aplica íntegramente.
 
-Un feature **no** debe inyectar directamente **factories**, **repositorios** ni **modelos** de otro feature. Eso acopla fronteras y rompe el aislamiento del dominio.
+Un feature **no** debe inyectar directamente **factories**, **repositorios**, **modelos**, **Actions** ni **QueryObjects** de otro feature. Eso acopla fronteras y rompe el aislamiento del dominio.
 
-Si un feature necesita datos o comportamiento de otro, el feature **proveedor** expone un **servicio especializado** en su carpeta `Services/` (ej. `App\Features\Events\Services\EventDefinitionPayloadService`). El feature **consumidor** inyecta únicamente ese servicio.
+Si un feature necesita datos o comportamiento de otro, el feature **proveedor** expone un **servicio especializado** en su carpeta `Services/` (ej. `App\Features\Events\Services\EventDefinitionPayloadService`). Esa capa es la **frontera entre features**: el servicio **transporta DTOs** (y encapsula reglas de integración); el consumidor no conoce factories ni repos del proveedor.
 
-- El servicio puede usar internamente factories y repositorios de su propio feature.
+- El servicio puede usar internamente factories, repositorios, actions y query objects de **su propio** feature o submódulo.
 - Los **UseCases** del consumidor dependen del servicio público, no de `EventDefinitionFactory` ni de repositorios ajenos.
 
 ## Flujo de una petición HTTP
 
 1. **Request** → **Controller** recibe un `Form Request` y lo convierte en un **Command** (método estático `Command::fromRequest($request)`).
 2. **Controller** inyecta el **UseCase** y llama `$useCase->execute($command)`.
-3. **UseCase** orquesta repositorios, factories, **Actions**, **QueryObjects** y servicios; no contiene lógica HTTP.
+3. **UseCase** orquesta repositorios, factories, **Actions**, **QueryObjects** (cuando apliquen) y **servicios de otros features** (vía la frontera `Services/` + DTOs); no contiene lógica HTTP.
 4. **Controller** transforma el resultado con **Resource** (o `Resource::collection`) y devuelve la respuesta (ej. con `ApiResponse::success`).
 
 Ejemplo de cadena: `ListEventDefinitionsRequest` → `ListEventDefinitionsCommand::fromRequest()` → `ListEventDefinitionsUseCase::execute($command)` → repositorio obtenido vía factory → `EventDefinitionResource::collection()`.
@@ -130,10 +139,10 @@ Ejemplo de cadena: `ListEventDefinitionsRequest` → `ListEventDefinitionsComman
 - Cuando una operación de borrado falle por restricción de llave foránea, capturar la excepción técnica de base de datos en UseCase/Repositorio, verificar que realmente corresponde a una FK constraint y lanzar una **excepción de dominio personalizada** que extienda `MmtException` (ej. `ResourceHasDependenciesException` con HTTP 409).
 - Así cualquier excepción que llegue al controlador será capturada por el handler y se devolverá la respuesta JSON correspondiente; el controlador solo orquesta el flujo feliz (Command → Execute → Success).
 - **Commands**: Objetos de datos con constructor y `static fromRequest(Request $request): self`. Un command por acción (List, Store, etc.).
-- **UseCases**: Un método `execute(Command $command)` (o parámetros equivalentes). Dependen de Factories (repositorios del **mismo** feature), servicios internos y, cuando haga falta, **servicios especializados** de otros features (ver «Comunicación entre features»). No de Http. No inyectar interfaces de repositorio directamente.
+- **UseCases**: Un método `execute(Command $command)` (o parámetros equivalentes). Dependen de Factories (repositorios del **mismo** feature o submódulo), **Actions**, y cuando haga falta **servicios especializados** de **otros** features de primer nivel (ver «Comunicación entre features»). No de Http. No inyectar interfaces de repositorio directamente.
 - **Repositories**: Implementan interfaces en `Repositories/Contracts/`. Las interfaces definen el contrato; las implementaciones viven en `Repositories/`. No se inyectan por interfaz: se accede siempre vía Factory (ver abajo).
   - **Naming**: el contrato usa sufijo `Interface` (ej. `UserRepositoryInterface`) y la implementación concreta elimina el sufijo (ej. `UserRepository`).
-- **Repository Factory**: Por cada repositorio existe una Factory en `Factories/` (ej. `EventDefinitionFactory`). UseCases, Services y Jobs inyectan la Factory, no la interfaz del repositorio. La Factory expone `make()` que **instancia directamente** la implementación concreta con `new` — **no** usa el contenedor de Laravel. El tipo de retorno declarado es la interfaz del contrato; la implementación concreta se especifica dentro de la propia Factory.
+- **Repository Factory**: Por cada repositorio existe una Factory en `Factories/` (ej. `EventDefinitionFactory`). UseCases, **Actions**, Services (de frontera entre features) y Jobs inyectan la Factory, no la interfaz del repositorio. La Factory expone `make()` que **instancia directamente** la implementación concreta con `new` — **no** usa el contenedor de Laravel. El tipo de retorno declarado es la interfaz del contrato; la implementación concreta se especifica dentro de la propia Factory.
 
   ```php
   // app/Features/Events/Factories/EventDefinitionFactory.php
@@ -176,7 +185,7 @@ Ejemplo de cadena: `ListEventDefinitionsRequest` → `ListEventDefinitionsComman
 
 ## Qué evitar
 
-- No poner lógica de negocio en Controllers; debe estar en UseCases, **Actions**, **Services** o **Repositories** (consultas puntuales vía **QueryObjects** cuando aplique).
+- No poner lógica de negocio en Controllers; debe estar en UseCases, **Actions**, **Repositories** y, hacia **otros features**, en los **Services** de frontera; las consultas puntuales de alto rendimiento o filtrado vía **QueryObjects** cuando aplique el criterio definido arriba.
 - No inyectar interfaces de repositorio en UseCases, Services o Jobs; inyectar siempre la Factory y obtener el repositorio con `make()`.
 - No inyectar factories, repositorios ni modelos de **otro** feature (entre features distintos); dentro del feature `Trading`, los submódulos pueden compartir factories/repos según «Comunicación dentro de `Trading`». Hacia fuera, usar los **servicios especializados** que ese feature exponga en `Services/`.
 - No referenciar capa HTTP (Requests, Controllers) desde UseCases o Repositories.

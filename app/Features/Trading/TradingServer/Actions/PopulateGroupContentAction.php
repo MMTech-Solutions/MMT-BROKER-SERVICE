@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Features\Trading\TradingServer\Services;
+namespace App\Features\Trading\TradingServer\Actions;
 
 use App\Features\Trading\TradingServer\Factories\SecurityRepositoryFactory;
 use App\Features\Trading\TradingServer\Factories\ServerGroupRepositoryFactory;
@@ -14,7 +14,7 @@ use App\Features\Trading\TradingServer\Repositories\Contracts\SymbolRepositoryIn
 use Mmt\TradingServiceSdk\Platforms\MT5\ObjectResponses\HierarchyGroupItem;
 use Mmt\TradingServiceSdk\Platforms\MT5\ObjectResponses\SymbolItem;
 
-class PopulateGroupContentService
+class PopulateGroupContentAction
 {
     protected SecurityRepositoryInterface $securityRepository;
 

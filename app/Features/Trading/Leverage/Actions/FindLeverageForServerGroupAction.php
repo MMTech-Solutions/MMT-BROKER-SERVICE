@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Features\Trading\TradingServer\Services;
+namespace App\Features\Trading\Leverage\Actions;
 
-use App\Features\Trading\Leverage\Models\Leverage;
 use App\Features\Trading\Leverage\DTOs\LeverageDTO;
+use App\Features\Trading\Leverage\Models\Leverage;
 use App\Features\Trading\TradingServer\Exceptions\LeverageNotAssignedToServerGroupException;
 use App\Features\Trading\TradingServer\Exceptions\ServerGroupNotFoundException;
 use App\Features\Trading\TradingServer\Factories\ServerGroupRepositoryFactory;
 use App\Features\Trading\TradingServer\Repositories\Contracts\ServerGroupRepositoryInterface;
 
-class FindLeverageForServerGroupService
+class FindLeverageForServerGroupAction
 {
     private ServerGroupRepositoryInterface $serverGroupRepository;
 

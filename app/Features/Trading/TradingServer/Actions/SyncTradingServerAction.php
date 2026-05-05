@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Features\Trading\TradingServer\Services;
+namespace App\Features\Trading\TradingServer\Actions;
 
 use App\Features\Trading\TradingServer\Factories\SecurityRepositoryFactory;
 use App\Features\Trading\TradingServer\Factories\ServerGroupRepositoryFactory;
@@ -17,7 +17,7 @@ use App\SharedFeatures\TradingService\Exceptions\TradingServiceException;
 use App\SharedFeatures\TradingService\Factories\TradingServiceFactory;
 use Mmt\TradingServiceSdk\Platforms\MT5\ObjectResponses\HierarchyGroupItem;
 
-class SyncTradingServerService
+class SyncTradingServerAction
 {
     protected ServerGroupRepositoryInterface $serverGroupRepository;
 
@@ -33,7 +33,7 @@ class SyncTradingServerService
         private readonly SymbolRepositoryFactory $symbolRepositoryFactory,
         private readonly TradingServiceFactory $tradingServiceFactory,
         private readonly TradingServerRepositoryFactory $tradingServerRepositoryFactory,
-        private readonly PopulateGroupContentService $populateGroupContentService,
+        private readonly PopulateGroupContentAction $populateGroupContentAction,
     ) {
         $this->serverGroupRepository = $serverGroupRepositoryFactory->make();
         $this->symbolRepository = $symbolRepositoryFactory->make();
@@ -62,7 +62,6 @@ class SyncTradingServerService
         /** @var HierarchyGroupItem[] $groups */
         $groups = $groupsResult->getMappedData(HierarchyGroupItem::class);
 
-        // Si la API no devuelve grupos, eliminar todo lo que haya en DB para este TradingServer
         if (count($groups) === 0) {
             $this->serverGroupRepository->deleteAllByTradingServerId($tradingServerId);
             $this->symbolRepository->deleteAllByTradingServerId($tradingServerId);
@@ -72,7 +71,6 @@ class SyncTradingServerService
             return;
         }
 
-        // Eliminar los grupos presentes en DB pero ausentes en la API
         $groupNames = array_map(fn (HierarchyGroupItem $group) => $group->name, $groups);
         $groupsToDelete = $this->serverGroupRepository->getDiff($tradingServerId, $groupNames);
 
@@ -81,15 +79,14 @@ class SyncTradingServerService
             $this->serverGroupRepository->deleteById($group->id);
         }
 
-        // Para cada grupo de la API: sincronizar su contenido si ya existe, o crearlo si es nuevo
         foreach ($groups as $groupItem) {
             $existingGroup = $this->serverGroupRepository->findByName($groupItem->name, $tradingServerId);
 
             if ($existingGroup !== null) {
-                $this->populateGroupContentService->execute($existingGroup, $groupItem, $tradingServerId);
+                $this->populateGroupContentAction->execute($existingGroup, $groupItem, $tradingServerId);
             } else {
                 $newGroup = $this->serverGroupRepository->basicCreate($groupItem->name, $tradingServerId);
-                $this->populateGroupContentService->execute($newGroup, $groupItem, $tradingServerId);
+                $this->populateGroupContentAction->execute($newGroup, $groupItem, $tradingServerId);
             }
         }
 
@@ -107,10 +104,6 @@ class SyncTradingServerService
         ]);
     }
 
-    /**
-     * Elimina todas las securities y sus symbols asociados al grupo, sin tocar el ServerGroup en sí.
-     * Preserva la configuración manual del grupo (meta_name, is_active, etc.).
-     */
     private function clearGroupContent(ServerGroup $serverGroup): void
     {
         $securities = $serverGroup->securities;
