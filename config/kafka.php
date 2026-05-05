@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 return [
     /*
@@ -84,5 +86,7 @@ return [
      */
     'message_id_key' => env('MESSAGE_ID_KEY', 'laravel-kafka::message-id'),
 
-    'topic' => 'broker'
+    'app_topic' => env('APP_NAME', 'broker'),
+
+    'consumers' => ['broker'],
 ];

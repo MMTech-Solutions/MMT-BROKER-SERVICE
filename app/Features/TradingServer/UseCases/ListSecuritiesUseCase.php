@@ -2,10 +2,11 @@
 
 namespace App\Features\TradingServer\UseCases;
 
+use App\Features\TradingServer\DTOs\SecurityDTO;
 use App\Features\TradingServer\Factories\SecurityRepositoryFactory;
 use App\Features\TradingServer\Http\V1\Commands\ListSecuritiesCommand;
 use App\Features\TradingServer\Repositories\Contracts\SecurityRepositoryInterface;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Spatie\LaravelData\PaginatedDataCollection;
 
 class ListSecuritiesUseCase
 {
@@ -17,14 +18,19 @@ class ListSecuritiesUseCase
         $this->securityRepository = $securityRepositoryFactory->make();
     }
 
-    public function execute(ListSecuritiesCommand $command): LengthAwarePaginator
+    public function execute(ListSecuritiesCommand $command): PaginatedDataCollection
     {
-        return $this->securityRepository->paginate(
+        $securityModels = $this->securityRepository->paginate(
             filters: [
                 'trading_server_id' => $command->TradingServerId,
                 'name' => $command->name,
             ],
             perPage: $command->perPage,
+        );
+
+        return SecurityDTO::collect(
+            $securityModels,
+            PaginatedDataCollection::class
         );
     }
 }

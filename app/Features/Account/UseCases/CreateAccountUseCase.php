@@ -2,24 +2,28 @@
 
 namespace App\Features\Account\UseCases;
 
-use App\Features\Account\Http\V1\Commands\CreateAccountCommand;
-use App\Features\Account\Repositories\Contracts\AccountRepositoryInterface;
+use App\Features\Account\Actions\CheckAccountLimitsAction;
+use App\Features\Account\Actions\CreateAccountAction;
+use App\Features\Account\Events\TradingAccountCreatedEvent;
+use App\Features\Account\Exceptions\InvalidAccountOperationException;
 use App\Features\Account\Factories\AccountRepositoryFactory;
+use App\Features\Account\Http\V1\Commands\CreateAccountCommand;
+use App\Features\Account\Models\Account;
+use App\Features\Account\QueryObjects\SetInitialBalanceQueryObject;
+use App\Features\Account\Repositories\Contracts\AccountRepositoryInterface;
+use App\Features\TradingServer\Enums\EnvironmentEnum;
+use App\Features\TradingServer\Services\FindInitialAmountByIdService;
 use App\Features\TradingServer\Services\FindLeverageForServerGroupService;
 use App\Features\TradingServer\Services\FindServerGroupByIdService;
-use App\Features\Leverage\Services\FindLeverageByIdService;
-use App\SharedFeatures\DTOs\User;
-use App\SharedFeatures\TradingService\Exceptions\TradingServiceException;
 use App\SharedFeatures\TradingService\Factories\TradingServiceFactory;
-use Mmt\TradingServiceSdk\Enums\LanguagesEnum;
-use Mmt\TradingServiceSdk\Platforms\BrokerPasswordGenerator;
-use Mmt\TradingServiceSdk\Platforms\MT5\Commands\CreateUserCommand;
+use App\SharedFeatures\User\User;
+use App\SharedFeatures\User\UserContext;
+use App\SharedFeatures\ValueObjects\Currency;
+use App\SharedFeatures\ValueObjects\PositiveMoney;
+use App\SharedFeatures\ValueObjects\PositiveNumber;
+use Mmt\TradingServiceSdk\Platforms\MT5\Commands\TransactionCommand;
 use Mmt\TradingServiceSdk\Platforms\MT5\Contracts\MT5TradingServiceInterface;
-use Mmt\TradingServiceSdk\Platforms\MT5\ObjectResponses\UserItem;
-use App\SharedFeatures\Application\UserContext;
-use App\Features\Account\Events\TradingAccountCreatedEvent;
-use App\Features\Account\Services\CheckAccountLimitsService;
-
+use Mmt\TradingServiceSdk\Platforms\MT5\Enums\TransactionTypeEnum;
 
 class CreateAccountUseCase
 {
@@ -33,105 +37,116 @@ class CreateAccountUseCase
         private readonly AccountRepositoryFactory $accountRepositoryFactory,
         private readonly TradingServiceFactory $tradingServiceFactory,
         private readonly FindServerGroupByIdService $findServerGroupByIdService,
-        private readonly FindLeverageByIdService $findLeverageByIdService,
-        private readonly CheckAccountLimitsService $checkAccountLimitsService,
+        private readonly CheckAccountLimitsAction $checkAccountLimitsAction,
+        private readonly CreateAccountAction $createAccountAction,
+        private readonly FindInitialAmountByIdService $findInitialAmountByIdService,
     ) {
         $this->accountRepository = $accountRepositoryFactory->make();
-        $this->user = $userContext->user();
+        $this->user = $userContext->userInfo();
     }
 
     public function execute(CreateAccountCommand $command)
     {
         $serverGroup = $this->findServerGroupByIdService->execute($command->serverGroupId);
-        
+
+        $initialAmount = PositiveNumber::zero();
+        $balanceType = null;
+
+        if ($serverGroup->defaultAmount->isGreaterThanZero()) {
+            // Si el server_group tiene un monto inicial por defecto, se usa ese monto.
+            $initialAmount = $serverGroup->defaultAmount;
+            $balanceType = $serverGroup->defaultAmountType;
+        } else {
+            if ($serverGroup->environment == EnvironmentEnum::DEMO) {
+                // Si el usuario no especifica un monto inicial y el server_group es DEMO, se lanza una excepcion.
+                if ($command->amountId == null) {
+                    throw new InvalidAccountOperationException;
+                }
+
+                $initialAmountDTO = $this->findInitialAmountByIdService->execute($command->amountId);
+                $initialAmount = $initialAmountDTO->amount;
+                $balanceType = TransactionTypeEnum::BALANCE;
+            }
+        }
+
         $leverage = $this->findLeverageForServerGroupService->execute(
             $command->serverGroupId,
             $command->leverageId
         );
 
-        //TODO Aqui iran mas validaciones, permisos, ib, etc
-        $this->checkAccountLimitsService->execute(
+        $this->checkAccountLimitsAction->execute(
+            $serverGroup->accountLimits,
             $command->serverGroupId,
             $this->user->id
         );
 
+        // TODO Aqui iran mas validaciones, permisos, ib, etc
+
+        //! Incluso en la logica de creacion de cuentas anterior a esta
+        //! no se estaba registrando el balance inicial ni en transacciones
+        //! ni en la cartera del usuario. EL dinero pasa directamente a la cuenta
+        //! de trading.
+
         $tradingServiceSession = $this->tradingServiceFactory->make(
-            $serverGroup->tradingServer->platform->toEnum(),
-            $serverGroup->tradingServer->connection_id
+            $serverGroup->platform,
+            $serverGroup->connectionId
         );
-        
-        $randomPassword = BrokerPasswordGenerator::generateRandomPassword();
 
-        $userItem = $this->createExternalUser(
+        $account = $this->createAccountAction->execute(
             $tradingServiceSession,
-            $serverGroup->name,
-            $leverage->value,
-            $randomPassword
+            $serverGroup,
+            $this->user,
+            $leverage,
         );
 
-        $account = $this->accountRepository->createBasic(
-            externalUserId: $this->user->id,
-            externalTraderId: $userItem->login,
-            password: $randomPassword,
-            investorPassword: $randomPassword,
-            serverGroupId: $command->serverGroupId,
-            leverageId: $command->leverageId,
-        );
+        if ($initialAmount->isGreaterThanZero()) {
+            $this->setInitialBalance(
+                $tradingServiceSession,
+                $initialAmount,
+                $account,
+                $balanceType,
+            );
+        }
 
         event(new TradingAccountCreatedEvent(
             id: $account->id,
             externalUserId: $this->user->id,
-            externalTraderId: $userItem->login,
-            password: $randomPassword,
-            investorPassword: $randomPassword,
-            name: $this->user->name,
-            email: $this->user->email,
+            externalTraderId: $account->external_trader_id,
+            password: $account->password,
+            investorPassword: $account->investor_password,
+            userFullName: $this->user->fullName,
+            userEmail: $this->user->email,
         ));
 
         return $account;
     }
 
-
-    /**
-     * Creates a new external user in the trading service
-     * @return UserItem The created user
-     * @throws TradingServiceException If the user creation fails
-     */
-    private function createExternalUser(
+    private function setInitialBalance(
         MT5TradingServiceInterface $tradingServiceSession,
-        string $serverGroupName,
-        int $leverageValue,
-        string $randomPassword
-    ) : UserItem
-    {
-        $createUserResult = $tradingServiceSession->createUser(
-            new CreateUserCommand(
-                password: $randomPassword,
-                password_investor: $randomPassword,
-                group: $serverGroupName,
-                email: $this->user->email,
-                leverage: $leverageValue,
-                agent_account: $this->user->iblinkId,
-                first_name: $this->user->name,
-                last_name: $this->user->lastname,
-                //! -- Esto hay que resolverlo desde algun lugar
-                company: 'Some Company',
-                //! --
-                language: LanguagesEnum::ES_ES,
-                country: $this->user->countryIso,
-                city: $this->user->city,
-                state: $this->user->state,
-                zip_code: $this->user->zipcode,
-                address: $this->user->address,
-                phone: $this->user->phone,
-                comment: 'Some comment',
-            )
+        PositiveNumber $initialAmount,
+        Account $account,
+        TransactionTypeEnum $balanceType
+    ): void {
+        $money = new PositiveMoney(
+            amount: $initialAmount,
+            currency: Currency::fallback(),
         );
 
-        if ($createUserResult->isFailure()) {
-            throw new TradingServiceException($createUserResult->getMessage());
+        $transactionCommand = new TransactionCommand(
+            login: $account->external_trader_id,
+            amount: $money->toFloat(),
+            type: $balanceType,
+        );
+
+        $transactionResult = $tradingServiceSession->setBalance($transactionCommand);
+
+        if ($transactionResult->isFailure()) {
+            throw new InvalidAccountOperationException('Error setting initial balance');
         }
 
-        return $createUserResult->getData(UserItem::class);
+        SetInitialBalanceQueryObject::execute(
+            accountId: $account->id,
+            money: $money,
+        );
     }
 }

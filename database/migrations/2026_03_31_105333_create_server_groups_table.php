@@ -10,9 +10,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('server_groups', function (Blueprint $table) {
-            
+
             $table->uuid('id')->primary();
-            $table->foreignUuid('trading_server_id')->constrained("trading_servers")->cascadeOnDelete();
+            $table->foreignUuid('trading_server_id')->constrained('trading_servers')->cascadeOnDelete();
             $table->string('name');
             $table->string('description')->nullable();
             $table->string('meta_name')->comment('The name of the meta tag that contains the server group');
@@ -24,7 +24,9 @@ return new class extends Migration
             $table->integer('min_deposit')->default(0)->comment('The minimum deposit amount for this server group. Expressed in cents.');
             $table->integer('min_withdrawal')->default(0)->comment('The minimum withdrawal amount for this server group. Expressed in cents.');
             $table->integer('account_limits')->default(0)->comment('The maximum number of accounts that can be created for this server group');
-            $table->integer('default_credit')->default(0)->comment('The default credit amount for this server group. Expressed in cents.');
+            $table->integer('default_amount')->default(0)->comment('The default amount for this server group. Expressed in cents.');
+            $table->integer('default_amount_type')->nullable()->comment('See Sdk/TransactionTypeEnum for possible values');
+
             $table->integer('currency_denomination_factor')->default(1)->comment('The factor to convert the currency to the base currency. Cents accounts (USC)');
 
             $table->boolean('is_private')->default(false)->comment('If true, the server group is private and can only be used by the platform owner');
@@ -35,14 +37,14 @@ return new class extends Migration
             $table->boolean('use_countries_restrictions')->default(false)->comment('If true, the server group uses countries restrictions');
 
             $table->json('restricted_countries')
-            ->nullable()
-            ->comment('The countries restrictions for this server group. If use_countries_restrictions is true, 
+                ->nullable()
+                ->comment('The countries restrictions for this server group. If use_countries_restrictions is true, 
             this field is used to store the countries restrictions. 
             The format is an array of objects with the following properties: { "code": "string", "name": "string" }');
-            
+
             $table->string('book_type', 16)
-            ->default(BookTypeEnum::B_BOOK->value)
-            ->comment('The type of book to use for this server group. See ' . BookTypeEnum::class . ' for possible values');
+                ->default(BookTypeEnum::B_BOOK->value)
+                ->comment('The type of book to use for this server group. See '.BookTypeEnum::class.' for possible values');
 
             $table->softDeletes();
             $table->timestamps();
@@ -50,7 +52,7 @@ return new class extends Migration
             $table->unique(['name', 'trading_server_id'], 'server_groups_unique');
         });
     }
-    
+
     public function down(): void
     {
         Schema::dropIfExists('server_groups');

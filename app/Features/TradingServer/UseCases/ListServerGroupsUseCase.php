@@ -2,10 +2,11 @@
 
 namespace App\Features\TradingServer\UseCases;
 
+use App\Features\TradingServer\DTOs\ServerGroupDTO;
 use App\Features\TradingServer\Factories\ServerGroupRepositoryFactory;
 use App\Features\TradingServer\Http\V1\Commands\ListServerGroupsCommand;
 use App\Features\TradingServer\Repositories\Contracts\ServerGroupRepositoryInterface;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Spatie\LaravelData\PaginatedDataCollection;
 
 class ListServerGroupsUseCase
 {
@@ -17,15 +18,20 @@ class ListServerGroupsUseCase
         $this->serverGroupRepository = $serverGroupRepositoryFactory->make();
     }
 
-    public function execute(ListServerGroupsCommand $command): LengthAwarePaginator
+    public function execute(ListServerGroupsCommand $command): PaginatedDataCollection
     {
-        return $this->serverGroupRepository->paginate(
+        $serverGroups = $this->serverGroupRepository->paginate(
             filters: [
                 'trading_server_id' => $command->TradingServerId,
                 'name' => $command->name,
                 'meta_name' => $command->metaName,
             ],
             perPage: $command->perPage,
+        );
+
+        return ServerGroupDTO::collect(
+            $serverGroups,
+            PaginatedDataCollection::class
         );
     }
 }

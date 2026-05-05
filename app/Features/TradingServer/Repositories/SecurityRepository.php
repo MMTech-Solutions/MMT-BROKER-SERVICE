@@ -3,35 +3,64 @@
 namespace App\Features\TradingServer\Repositories;
 
 use App\Features\TradingServer\Models\Security;
+use App\Features\TradingServer\Models\Symbol;
 use App\Features\TradingServer\Repositories\Contracts\SecurityRepositoryInterface;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 class SecurityRepository implements SecurityRepositoryInterface
 {
-    public function create(string $name, string $TradingServerId) : Security
+    public function create(string $name, string $tradingServerId): Security
     {
         return Security::create([
             'name' => $name,
-            'trading_server_id' => $TradingServerId,
+            'trading_server_id' => $tradingServerId,
         ]);
     }
 
-    public function addSymbols(Security $security, array $symbols) : Collection
+    public function updateOrCreateForTradingServer(string $name, string $tradingServerId): Security
     {
-        $insertedSymbols = $security->symbols()->createMany($symbols);
-
-        return collect($insertedSymbols);
+        return Security::updateOrCreate(
+            [
+                'name' => $name,
+                'trading_server_id' => $tradingServerId,
+            ],
+            [],
+        );
     }
 
-    public function syncSymbols(Security $security, Collection $symbols) : void
+    public function addSymbols(Security $security, array $symbols): Collection
     {
-        $security->symbols()->sync($symbols->pluck('id'));
+        $resolved = collect();
+
+        foreach ($symbols as $attributes) {
+            $resolved->push(Symbol::updateOrCreate(
+                [
+                    'alpha' => $attributes['alpha'],
+                    'trading_server_id' => $attributes['trading_server_id'],
+                ],
+                [
+                    'name' => $attributes['name'],
+                    'stype' => $attributes['stype'],
+                ],
+            ));
+        }
+
+        $security->symbols()->sync(
+            $resolved->pluck('id')->unique()->values()->all(),
+        );
+
+        return $resolved;
     }
 
-    public function deleteSecuritiesByIds(array $securityIds) : void
+    public function deleteSecuritiesByIds(array $securityIds): void
     {
         Security::whereIn('id', $securityIds)->delete();
+    }
+
+    public function deleteAllByTradingServerId(string $tradingServerId): void
+    {
+        Security::where('trading_server_id', $tradingServerId)->delete();
     }
 
     public function paginate(array $filters, int $perPage): LengthAwarePaginator

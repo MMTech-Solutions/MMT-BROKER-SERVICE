@@ -3,7 +3,7 @@
 namespace App\Features\TradingServer\Http\V1\Requests;
 
 use App\Features\TradingServer\Enums\EnvironmentEnum;
-use App\SharedFeatures\Application\UserContext;
+use App\SharedFeatures\User\UserContext;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Enum;
@@ -16,7 +16,7 @@ class ListTradingServersRequest extends FormRequest
         UserContext $userContext,
     ): bool
     {
-        return $userContext->isAdmin();
+        return $userContext->can('trading_server.read');
     }
 
     /**

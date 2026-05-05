@@ -24,5 +24,5 @@ interface PlatformRepositoryInterface
      */
     public function update(Platform $platform, array $attributes): Platform;
 
-    public function delete(Platform $platform): void;
+    public function deleteById(string $id): void;
 }

@@ -8,7 +8,9 @@ class CreateAccountCommand
 {
     public function __construct(
         public readonly string $serverGroupId,
-        public readonly string $leverageId
+        public readonly string $leverageId,
+        /** Id del registro en base de datos del monto inicial. Solo para cuentas DEMO */
+        public readonly ?string $amountId = null
     ) {}
 
     public static function fromRequest(CreateAccountRequest $request): self
@@ -17,7 +19,8 @@ class CreateAccountCommand
 
         return new self(
             serverGroupId: $validated['server_group_id'],
-            leverageId: $validated['leverage_id']
+            leverageId: $validated['leverage_id'],
+            amountId: $validated['amount_id'] ?? null
         );
     }
 }

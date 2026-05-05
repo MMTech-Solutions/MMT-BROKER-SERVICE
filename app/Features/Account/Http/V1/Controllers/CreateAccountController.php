@@ -12,8 +12,10 @@ class CreateAccountController
 {
     use ApiResponse;
 
-    public function __invoke(CreateAccountRequest $request, CreateAccountUseCase $useCase)
-    {
+    public function __invoke(
+        CreateAccountRequest $request,
+        CreateAccountUseCase $useCase
+    ) {
         $command = CreateAccountCommand::fromRequest($request);
 
         $account = $useCase->execute($command);

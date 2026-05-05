@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Features\ServerGroup\Listeners;
+namespace App\Features\TradingServer\Listeners;
 
 use App\Features\TradingServer\Events\TradingServerSyncDoneEvent;
 use Illuminate\Contracts\Queue\ShouldQueue;

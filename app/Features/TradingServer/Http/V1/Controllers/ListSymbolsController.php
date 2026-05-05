@@ -4,9 +4,9 @@ namespace App\Features\TradingServer\Http\V1\Controllers;
 
 use App\Features\TradingServer\Http\V1\Commands\ListSymbolsCommand;
 use App\Features\TradingServer\Http\V1\Requests\ListSymbolsRequest;
-use App\Features\TradingServer\Http\V1\Resources\SymbolResource;
 use App\Features\TradingServer\UseCases\ListSymbolsUseCase;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Pagination\LengthAwarePaginator;
 use MMT\ApiResponseNormalizer\ApiResponse;
 
 class ListSymbolsController
@@ -17,11 +17,14 @@ class ListSymbolsController
         ListSymbolsRequest $request,
         ListSymbolsUseCase $useCase,
     ): JsonResponse {
-        $symbols = $useCase->execute(ListSymbolsCommand::fromRequest($request));
+        $symbolsDTO = $useCase->execute(ListSymbolsCommand::fromRequest($request));
+        /** @var LengthAwarePaginator */
+        $paginator = $symbolsDTO->items();
+        $data = $symbolsDTO->toArray()['data'];
 
         return $this->success(
-            data: SymbolResource::collection(collect($symbols->items()))->resolve(),
-            paginator: $symbols,
+            data: $data,
+            paginator: $paginator,
             filters: $request->safe()->only(['name', 'alpha', 'stype']),
         );
     }

@@ -2,34 +2,34 @@
 
 namespace App\Features\TradingServer\UseCases;
 
+use App\Features\Platform\Services\FindPlatformByIdService;
+use App\Features\TradingServer\DTOs\TradingServerDTO;
 use App\Features\TradingServer\Factories\TradingServerRepositoryFactory;
 use App\Features\TradingServer\Http\V1\Commands\StoreTradingServerCommand;
-use App\Features\TradingServer\Models\TradingServer;
 use App\Features\TradingServer\Repositories\Contracts\TradingServerRepositoryInterface;
-use App\Features\Platform\Services\FindPlatformByIdService;
 use App\SharedFeatures\TradingService\Exceptions\ConnectionFailsException;
 use App\SharedFeatures\TradingService\Factories\TradingServiceSessionFactory;
-use Mmt\TradingServiceSdk\Platforms\Shared\Commands\ConnectBrokerCommand;
 use Exception;
+use Mmt\TradingServiceSdk\Platforms\Shared\Commands\ConnectBrokerCommand;
 
 class StoreTradingServerUseCase
 {
-    private TradingServerRepositoryInterface $TradingServerRepository;
+    private TradingServerRepositoryInterface $tradingServerRepository;
 
     public function __construct(
-        private readonly TradingServerRepositoryFactory $TradingServerRepositoryFactory,
+        private readonly TradingServerRepositoryFactory $tradingServerRepositoryFactory,
         private readonly FindPlatformByIdService $findPlatformByIdService,
         private readonly TradingServiceSessionFactory $tradingServiceSessionFactory,
     ) {
-        $this->TradingServerRepository = $TradingServerRepositoryFactory->make();
+        $this->tradingServerRepository = $tradingServerRepositoryFactory->make();
     }
 
-    public function execute(StoreTradingServerCommand $command): TradingServer
+    public function execute(StoreTradingServerCommand $command): TradingServerDTO
     {
         $platform = $this->findPlatformByIdService->execute($command->platformId);
 
         $connectBrokerCommand = new ConnectBrokerCommand(
-            platform_type: $platform->toEnum(),
+            platform_type: $platform->type,
             server: $command->host,
             port: $command->port,
             login: $command->username,
@@ -38,15 +38,14 @@ class StoreTradingServerUseCase
         );
 
         $connectionId = null;
-        
+
         try {
             $this->tradingServiceSessionFactory->make($connectBrokerCommand, $connectionId);
-        }
-        catch(Exception $e) {
+        } catch (Exception $e) {
             throw new ConnectionFailsException($e->getMessage());
         }
 
-        return $this->TradingServerRepository->create([
+        $tradingServerModel = $this->tradingServerRepository->create([
             'platform_id' => $command->platformId,
             'host' => $command->host,
             'port' => $command->port,
@@ -56,5 +55,7 @@ class StoreTradingServerUseCase
             'environment' => $command->environment,
             'is_active' => $command->isActive,
         ]);
+
+        return TradingServerDTO::from($tradingServerModel);
     }
 }

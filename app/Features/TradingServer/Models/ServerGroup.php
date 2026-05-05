@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-
+use Mmt\TradingServiceSdk\Platforms\MT5\Enums\TransactionTypeEnum;
 
 /**
  * @property string $id
@@ -20,14 +20,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property int $account_limits
  * @property int $min_deposit
  * @property int $min_withdrawal
- * @property int $default_credit
+ * @property int $default_amount
+ * @property TransactionTypeEnum $default_amount_type
  * @property int $currency_denomination_factor
- * @property boolean $is_private
- * @property boolean $is_default
- * @property boolean $is_active
- * @property boolean $is_deposit_enabled
- * @property boolean $is_withdrawal_enabled
- * @property boolean $use_countries_restrictions
+ * @property bool $is_private
+ * @property bool $is_default
+ * @property bool $is_active
+ * @property bool $is_deposit_enabled
+ * @property bool $is_withdrawal_enabled
+ * @property bool $use_countries_restrictions
  * @property array $restricted_countries
  * @property Collection<Security> $securities
  * @property Collection<Symbol> $symbols
@@ -47,7 +48,8 @@ class ServerGroup extends Model
         'account_limits',
         'min_deposit',
         'min_withdrawal',
-        'default_credit',
+        'default_amount',
+        'default_amount_type',
         'currency_denomination_factor',
         'is_private',
         'is_default',
@@ -63,6 +65,7 @@ class ServerGroup extends Model
         return [
             'currency' => 'array',
             'restricted_countries' => 'array',
+            'default_amount_type' => TransactionTypeEnum::class,
         ];
     }
 
@@ -79,5 +82,10 @@ class ServerGroup extends Model
     public function tradingServer(): BelongsTo
     {
         return $this->belongsTo(TradingServer::class);
+    }
+
+    public function initialAmounts(): BelongsToMany
+    {
+        return $this->belongsToMany(InitialAmount::class);
     }
 }

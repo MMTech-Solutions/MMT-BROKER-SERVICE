@@ -2,10 +2,10 @@
 
 namespace App\Features\Platform\UseCases;
 
+use App\Features\Platform\DTOs\PlatformDTO;
 use App\Features\Platform\Exceptions\PlatformNotFoundException;
 use App\Features\Platform\Factories\PlatformRepositoryFactory;
 use App\Features\Platform\Http\V1\Commands\ShowPlatformCommand;
-use App\Features\Platform\Models\Platform;
 use App\Features\Platform\Repositories\Contracts\PlatformRepositoryInterface;
 
 class ShowPlatformUseCase
@@ -18,14 +18,10 @@ class ShowPlatformUseCase
         $this->platformRepository = $platformRepositoryFactory->make();
     }
 
-    public function execute(ShowPlatformCommand $command): Platform
+    public function execute(ShowPlatformCommand $command): PlatformDTO
     {
-        $platform = $this->platformRepository->findById($command->platformId);
+        $platform = $this->platformRepository->findById($command->platformId) ?? throw new PlatformNotFoundException();
 
-        if ($platform === null) {
-            throw new PlatformNotFoundException();
-        }
-
-        return $platform;
+        return PlatformDTO::from($platform);
     }
 }

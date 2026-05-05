@@ -2,12 +2,18 @@
 
 namespace App\Features\TradingServer\Http\V1\Requests;
 
+use App\SharedFeatures\User\UserContext;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Validator;
 
 class DeleteTradingServerRequest extends FormRequest
 {
+    public function authorize(UserContext $userContext)
+    {
+        return $userContext->can('trading_server.delete');
+    }
+
     /**
      * @return array<string, mixed>
      */

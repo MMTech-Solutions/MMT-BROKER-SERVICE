@@ -1,11 +1,12 @@
 <?php
 
 use App\SharedFeatures\EventBus\Console\KafkaConsumerCommand;
-use App\SharedFeatures\Http\Middleware\ResolveUserFromGatewayHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use MMT\LaravelFeatureScaffold\Exceptions\MmtException;
+use Mmtech\Rbac\Http\Middleware\BindGatewayUserToAuth;
+use Mmtech\Rbac\Http\Middleware\ResolveGatewayUserInfo;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -21,7 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'gateway.auth.user' => ResolveUserFromGatewayHeaders::class,
+            'rbac.auth.user' => ResolveGatewayUserInfo::class,
+            'rbac.bind.gateway.user' => BindGatewayUserToAuth::class,
         ]);
     })
     ->withCommands([KafkaConsumerCommand::class])

@@ -21,14 +21,11 @@ class DeletePlatformUseCase
 
     public function execute(DeletePlatformCommand $command): void
     {
-        $platform = $this->platformRepository->findById($command->platformId);
-
-        if ($platform === null) {
-            throw new PlatformNotFoundException;
-        }
+        $platform = $this->platformRepository->findById($command->platformId)
+            ?? throw new PlatformNotFoundException();
 
         try {
-            $this->platformRepository->delete($platform);
+            $this->platformRepository->deleteById($platform->id);
         } catch (QueryException $exception) {
             if ($this->isForeignKeyConstraintError($exception)) {
                 throw new PlatformHasDependenciesException($exception);

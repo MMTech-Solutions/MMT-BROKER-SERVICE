@@ -2,12 +2,13 @@
 
 namespace App\Features\TradingServer\UseCases;
 
+use App\Features\Platform\Services\FindPlatformByIdService;
 use App\Features\TradingServer\Exceptions\TradingServerNotFoundException;
 use App\Features\TradingServer\Factories\TradingServerRepositoryFactory;
 use App\Features\TradingServer\Http\V1\Commands\UpdateTradingServerCommand;
+use App\Features\TradingServer\DTOs\TradingServerDTO;
 use App\Features\TradingServer\Models\TradingServer;
 use App\Features\TradingServer\Repositories\Contracts\TradingServerRepositoryInterface;
-use App\Features\Platform\Services\FindPlatformByIdService;
 use App\SharedFeatures\TradingService\Exceptions\ConnectionFailsException;
 use App\SharedFeatures\TradingService\Factories\TradingServiceSessionFactory;
 use Exception;
@@ -16,56 +17,57 @@ use Mmt\TradingServiceSdk\Platforms\Shared\Commands\ConnectBrokerCommand;
 
 class UpdateTradingServerUseCase
 {
-    private TradingServerRepositoryInterface $TradingServerRepository;
+    private TradingServerRepositoryInterface $tradingServerRepository;
 
     public function __construct(
-        private readonly TradingServerRepositoryFactory $TradingServerRepositoryFactory,
+        private readonly TradingServerRepositoryFactory $tradingServerRepositoryFactory,
         private readonly TradingServiceSessionFactory $tradingServiceSessionFactory,
-        private readonly FindPlatformByIdService $findPlatformByIdService,
+        private readonly FindPlatformByIdService $findPlatformByIdService
     ) {
-        $this->TradingServerRepository = $TradingServerRepositoryFactory->make();
+        $this->tradingServerRepository = $tradingServerRepositoryFactory->make();
     }
 
-    public function execute(UpdateTradingServerCommand $command): TradingServer
+    public function execute(UpdateTradingServerCommand $command): TradingServerDTO
     {
-        $TradingServer = $this->TradingServerRepository->findById($command->TradingServerId);
+        $tradingServer = $this->tradingServerRepository->findById($command->TradingServerId);
 
-        if ($TradingServer === null) {
-            throw new TradingServerNotFoundException();
+        if ($tradingServer === null) {
+            throw new TradingServerNotFoundException;
         }
 
-        $platform = $this->findPlatformByIdService->execute($TradingServer->platform_id);
+        $platform = $this->findPlatformByIdService->execute($tradingServer->platform_id);
 
         $attributes = [
-            'environment' => $command->environment ?? $TradingServer->environment,
-            'is_active' => $command->isActive ?? $TradingServer->is_active,
+            'environment' => $command->environment ?? $tradingServer->environment,
+            'is_active' => $command->isActive ?? $tradingServer->is_active,
         ];
 
         // If any of the attributes are set, connect to the new broker
         if ($command->host || $command->port || $command->username || $command->password) {
 
-            $oldConnectionId = $TradingServer->connection_id;
-            
-            $attributes = array_merge($attributes, $this->connectAttributes($command, $TradingServer));
+            $oldConnectionId = $tradingServer->connection_id;
+
+            $attributes = array_merge($attributes, $this->connectAttributes($command, $tradingServer));
 
             // Test the connection and set the new connection_id in the attributes
-            $this->testConnection($platform->toEnum(), $attributes, $platform->id);
+            $this->testConnection($platform->type, $attributes, $platform->id);
 
             // Disconnect by the old `connection_id`. Decrements ref_count; when it reaches 0 the Bridge process is closed
             $this->tradingServiceSessionFactory->disconnect($oldConnectionId);
         }
-        
-        return $this->TradingServerRepository->update($TradingServer, $attributes);
+
+        $tradingServerModel = $this->tradingServerRepository->update($tradingServer, $attributes);
+        return TradingServerDTO::from($tradingServerModel);
     }
 
-    private function connectAttributes(UpdateTradingServerCommand $command, TradingServer $TradingServer): array
+    private function connectAttributes(UpdateTradingServerCommand $command, TradingServer $tradingServer): array
     {
         $attributes = [];
-        
-        $attributes['host'] = $command->host ?? $TradingServer->host;
-        $attributes['port'] = $command->port ?? $TradingServer->port;
-        $attributes['username'] = $command->username ?? $TradingServer->username;
-        $attributes['password'] = $command->password ?? $TradingServer->password;
+
+        $attributes['host'] = $command->host ?? $tradingServer->host;
+        $attributes['port'] = $command->port ?? $tradingServer->port;
+        $attributes['username'] = $command->username ?? $tradingServer->username;
+        $attributes['password'] = $command->password ?? $tradingServer->password;
 
         return $attributes;
     }
@@ -80,12 +82,11 @@ class UpdateTradingServerUseCase
             password: $attributes['password'],
             name: 'broker-'.$platformId.'-'.now()->timestamp,
         );
-        
+
         try {
             $this->tradingServiceSessionFactory->make($connectBrokerCommand, $connectionId);
             $attributes['connection_id'] = $connectionId;
-        }
-        catch(Exception $e) {
+        } catch (Exception $e) {
             throw new ConnectionFailsException($e->getMessage());
         }
     }

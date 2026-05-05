@@ -2,10 +2,12 @@
 
 namespace App\Features\TradingServer\UseCases;
 
+use App\Features\TradingServer\DTOs\TradingServerDTO;
 use App\Features\TradingServer\Factories\TradingServerRepositoryFactory;
 use App\Features\TradingServer\Http\V1\Commands\ListTradingServersCommand;
 use App\Features\TradingServer\Repositories\Contracts\TradingServerRepositoryInterface;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Spatie\LaravelData\PaginatedDataCollection;
 
 class ListTradingServersUseCase
 {
@@ -17,9 +19,9 @@ class ListTradingServersUseCase
         $this->TradingServerRepository = $TradingServerRepositoryFactory->make();
     }
 
-    public function execute(ListTradingServersCommand $command): LengthAwarePaginator
+    public function execute(ListTradingServersCommand $command) : PaginatedDataCollection
     {
-        return $this->TradingServerRepository->paginate(
+        $tradingServers = $this->TradingServerRepository->paginate(
             filters: [
                 'host' => $command->host,
                 'username' => $command->username,
@@ -29,6 +31,11 @@ class ListTradingServersUseCase
                 'platform_id' => $command->platformId,
             ],
             perPage: $command->perPage,
+        );
+
+        return TradingServerDTO::collect(
+            $tradingServers,
+            PaginatedDataCollection::class
         );
     }
 }

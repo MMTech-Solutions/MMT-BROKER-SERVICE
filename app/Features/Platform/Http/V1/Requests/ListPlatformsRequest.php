@@ -2,7 +2,7 @@
 
 namespace App\Features\Platform\Http\V1\Requests;
 
-use App\SharedFeatures\Application\UserContext;
+use App\SharedFeatures\User\UserContext;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ListPlatformsRequest extends FormRequest
@@ -13,7 +13,7 @@ class ListPlatformsRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->userContext->adminCan('platform.view');
+        return $this->userContext->can('platform.read');
     }
 
     /**

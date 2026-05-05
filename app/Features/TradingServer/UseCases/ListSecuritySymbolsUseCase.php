@@ -2,10 +2,11 @@
 
 namespace App\Features\TradingServer\UseCases;
 
+use App\Features\TradingServer\DTOs\SymbolDTO;
 use App\Features\TradingServer\Factories\SymbolRepositoryFactory;
 use App\Features\TradingServer\Http\V1\Commands\ListSecuritySymbolsCommand;
 use App\Features\TradingServer\Repositories\Contracts\SymbolRepositoryInterface;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Spatie\LaravelData\PaginatedDataCollection;
 
 class ListSecuritySymbolsUseCase
 {
@@ -17,9 +18,9 @@ class ListSecuritySymbolsUseCase
         $this->symbolRepository = $symbolRepositoryFactory->make();
     }
 
-    public function execute(ListSecuritySymbolsCommand $command): LengthAwarePaginator
+    public function execute(ListSecuritySymbolsCommand $command): PaginatedDataCollection
     {
-        return $this->symbolRepository->paginate(
+        $symbolModels = $this->symbolRepository->paginate(
             filters: [
                 'trading_server_id' => $command->TradingServerId,
                 'security_id' => $command->securityId,
@@ -28,6 +29,11 @@ class ListSecuritySymbolsUseCase
                 'stype' => $command->stype,
             ],
             perPage: $command->perPage,
+        );
+
+        return SymbolDTO::collect(
+            $symbolModels,
+            PaginatedDataCollection::class
         );
     }
 }

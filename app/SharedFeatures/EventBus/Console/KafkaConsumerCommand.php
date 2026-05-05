@@ -12,14 +12,12 @@ class KafkaConsumerCommand extends Command
 
     protected $description = 'Consume Kafka events';
 
-    public function handle(
-        
-    ): void
+    public function handle(): void
     {
-        $consumer = Kafka::consumer(config('kafka.topics'))
+        $consumer = Kafka::consumer(config('kafka.consumers'))
             ->withBrokers(env('KAFKA_BROKERS'))
             ->withConsumerGroupId(env('KAFKA_CONSUMER_GROUP_ID'))
-            ->withHandler(new KafkaEventConsumerService())
+            ->withHandler(new KafkaEventConsumerService)
             ->withAutoCommit()
             ->build();
 

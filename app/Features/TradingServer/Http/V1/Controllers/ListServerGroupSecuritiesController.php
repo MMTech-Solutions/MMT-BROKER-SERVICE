@@ -4,10 +4,10 @@ namespace App\Features\TradingServer\Http\V1\Controllers;
 
 use App\Features\TradingServer\Http\V1\Commands\ListServerGroupSecuritiesCommand;
 use App\Features\TradingServer\Http\V1\Requests\ListServerGroupSecuritiesRequest;
-use App\Features\TradingServer\Http\V1\Resources\SecurityResource;
 use App\Features\TradingServer\UseCases\ListServerGroupSecuritiesUseCase;
 use Illuminate\Http\JsonResponse;
 use MMT\ApiResponseNormalizer\ApiResponse;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ListServerGroupSecuritiesController
 {
@@ -17,11 +17,14 @@ class ListServerGroupSecuritiesController
         ListServerGroupSecuritiesRequest $request,
         ListServerGroupSecuritiesUseCase $useCase,
     ): JsonResponse {
-        $securities = $useCase->execute(ListServerGroupSecuritiesCommand::fromRequest($request));
+        $securitiesDTO = $useCase->execute(ListServerGroupSecuritiesCommand::fromRequest($request));
+        /** @var LengthAwarePaginator */
+        $paginator = $securitiesDTO->items();
+        $data = $securitiesDTO->toArray()['data'];
 
         return $this->success(
-            data: SecurityResource::collection(collect($securities->items()))->resolve(),
-            paginator: $securities,
+            data: $data,
+            paginator: $paginator,
             filters: $request->safe()->only(['name']),
         );
     }

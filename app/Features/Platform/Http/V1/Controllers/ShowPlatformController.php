@@ -19,6 +19,6 @@ class ShowPlatformController
     ): JsonResponse {
         $platform = $useCase->execute(ShowPlatformCommand::fromRequest($request));
 
-        return $this->success((new PlatformResource($platform))->resolve());
+        return $this->success($platform->toArray());
     }
 }

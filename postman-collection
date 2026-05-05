@@ -2,6 +2,7 @@
   "info": {
     "_postman_id": "2f7a2fb4-4fb7-4f5f-a702-92309eccf000",
     "name": "Broker Service API",
+    "description": "Cada request envía cabeceras **mmtech/iam-rbac**: cabecera interna del gateway (secreto) + cabecera userinfo (`RBAC_GATEWAY_USERINFO_HEADER`, por defecto **X-Userinfo**) cuyo valor es **Base64URL** del UTF-8 del JSON del usuario.\n\n**Variables de ejemplo**\n- **`RBAC_USERINFO_JSON_EXAMPLE`**: JSON en claro (mínimo: `sub`). El script de colección lo codifica en cada request.\n- **`RBAC_USERINFO_BASE64_EXAMPLE`**: mismo JSON ya codificado; puedes copiarlo a la cabecera `X-Userinfo` para pruebas manuales o comprobar que coincide con lo que genera el script.\n- **`RBAC_DEV_USER_SUB`**: mismo `sub` que el JSON (referencia rápida para seeds SQL).\n\n**Usuario de desarrollo fijo** — usa el mismo `sub` en `rbac_user_permission_snapshots`:\n- `sub`: `b8f4e2a1-3c6d-4e9f-8b2a-7d1e9f4c6a50`\n- **surface** por defecto del checker (si no defines `RBAC_DEFAULT_SURFACE` en `.env`): `customer_app`\n\nEjemplo de fila para probar permisos del paquete (ajusta `permissions` a slugs reales de IAM):\n```sql\nINSERT INTO rbac_user_permission_snapshots\n  (message_key, sub, surface, rev, permissions, snapshot_updated_at, created_at, updated_at)\nVALUES\n  ('postman-dev-b8f4e2a1-customer_app',\n   'b8f4e2a1-3c6d-4e9f-8b2a-7d1e9f4c6a50',\n   'customer_app',\n   1,\n   '[\"your.permission.slug\"]',\n   NULL,\n   NOW(),\n   NOW());\n```\n\nSi cambias `RBAC_USERINFO_JSON_EXAMPLE`, vuelve a generar Base64URL y actualiza `RBAC_USERINFO_BASE64_EXAMPLE` (o deja solo el JSON y confía en el script). Variables `RBAC_GATEWAY_*` deben coincidir con `config/rbac.php` / `.env`.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -30,8 +31,28 @@
       "value": "00000000-0000-0000-0000-000000000005"
     },
     {
-      "key": "X_USER",
-      "value": "{\"id\":\"00000000-0000-0000-0000-000000000000\",\"name\":\"John\",\"lastname\":\"Doe\",\"username\":\"johndoe\",\"full_name\":\"John Doe\",\"email\":\"johndoe@example.com\",\"phone\":\"1234567890\",\"sex\":\"male\",\"birth\":\"1990-01-01\",\"referer\":\"referer\",\"iblink_id\":\"00000000-0000-0000-0000-000000000001\",\"ibratio\":\"1.0\",\"discountref\":\"0\",\"country_id\":1,\"country_iso\":\"ES\",\"state\":\"1\",\"city\":\"1\",\"street\":\"Some street\",\"zipcode\":\"1234567890\",\"address\":\"Some address\",\"langs_id\":1,\"status\":1,\"client\":\"1\",\"client_type\":\"user\",\"security2fa\":[],\"roles\":[\"admin\"],\"abilities\":{\"platform\":[\"view\",\"create\",\"update\",\"delete\"]}}"
+      "key": "RBAC_GATEWAY_INTERNAL_HEADER",
+      "value": "X-Internal-Gateway"
+    },
+    {
+      "key": "RBAC_GATEWAY_INTERNAL_SECRET",
+      "value": "apisix"
+    },
+    {
+      "key": "RBAC_GATEWAY_USERINFO_HEADER",
+      "value": "X-Userinfo"
+    },
+    {
+      "key": "RBAC_USERINFO_JSON_EXAMPLE",
+      "value": "{\"sub\":\"b8f4e2a1-3c6d-4e9f-8b2a-7d1e9f4c6a50\",\"email\":\"dev.postman@broker-service.local\",\"name\":\"Postman RBAC Dev User\"}"
+    },
+    {
+      "key": "RBAC_USERINFO_BASE64_EXAMPLE",
+      "value": "eyJzdWIiOiJiOGY0ZTJhMS0zYzZkLTRlOWYtOGIyYS03ZDFlOWY0YzZhNTAiLCJlbWFpbCI6ImRldi5wb3N0bWFuQGJyb2tlci1zZXJ2aWNlLmxvY2FsIiwibmFtZSI6IlBvc3RtYW4gUkJBQyBEZXYgVXNlciJ9"
+    },
+    {
+      "key": "RBAC_DEV_USER_SUB",
+      "value": "b8f4e2a1-3c6d-4e9f-8b2a-7d1e9f4c6a50"
     }
   ],
   "event": [
@@ -40,8 +61,25 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "const xUser = pm.collectionVariables.get('X_USER');",
-          "pm.request.headers.upsert({ key: 'X-USER', value: xUser });"
+          "function base64UrlEncodeUtf8(str) {",
+          "    const bytes = unescape(encodeURIComponent(str));",
+          "    let binary = '';",
+          "    for (let i = 0; i < bytes.length; i++) {",
+          "        binary += String.fromCharCode(bytes.charCodeAt(i));",
+          "    }",
+          "    const base64 = btoa(binary);",
+          "    return base64.split('+').join('-').split('/').join('_').replace(/=+$/, '');",
+          "}",
+          "",
+          "const jsonPayload = pm.collectionVariables.get('RBAC_USERINFO_JSON_EXAMPLE');",
+          "const internalHeader = pm.collectionVariables.get('RBAC_GATEWAY_INTERNAL_HEADER');",
+          "const internalSecret = pm.collectionVariables.get('RBAC_GATEWAY_INTERNAL_SECRET');",
+          "const userinfoHeader = pm.collectionVariables.get('RBAC_GATEWAY_USERINFO_HEADER');",
+          "",
+          "const userinfo = base64UrlEncodeUtf8(jsonPayload);",
+          "",
+          "pm.request.headers.upsert({ key: internalHeader, value: internalSecret });",
+          "pm.request.headers.upsert({ key: userinfoHeader, value: userinfo });"
         ]
       }
     }
@@ -590,12 +628,12 @@
           }
         },
         {
-          "name": "Initialize Trading Server",
+          "name": "Sync Trading Server",
           "request": {
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{BASE_URL}}/api/broker/v1/trading-servers/{{TRADING_SERVER_UUID}}/initialization",
+              "raw": "{{BASE_URL}}/api/broker/v1/trading-servers/{{TRADING_SERVER_UUID}}/sync",
               "host": [
                 "{{BASE_URL}}"
               ],
@@ -605,28 +643,7 @@
                 "v1",
                 "trading-servers",
                 "{{TRADING_SERVER_UUID}}",
-                "initialization"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Synchronize Trading Server",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{BASE_URL}}/api/broker/v1/trading-servers/{{TRADING_SERVER_UUID}}/synchronization",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "broker",
-                "v1",
-                "trading-servers",
-                "{{TRADING_SERVER_UUID}}",
-                "synchronization"
+                "sync"
               ]
             }
           }
@@ -848,6 +865,39 @@
                 "v1",
                 "leverages",
                 "{{LEVERAGE_UUID}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accounts",
+      "item": [
+        {
+          "name": "Create Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"server_group_id\": \"{{SERVER_GROUP_UUID}}\",\n  \"leverage_id\": \"{{LEVERAGE_UUID}}\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/accounts",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "accounts"
               ]
             }
           }

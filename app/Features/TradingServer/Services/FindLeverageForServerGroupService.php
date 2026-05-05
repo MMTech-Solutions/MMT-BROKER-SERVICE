@@ -3,6 +3,7 @@
 namespace App\Features\TradingServer\Services;
 
 use App\Features\Leverage\Models\Leverage;
+use App\Features\TradingServer\DTOs\LeverageDTO;
 use App\Features\TradingServer\Exceptions\LeverageNotAssignedToServerGroupException;
 use App\Features\TradingServer\Exceptions\ServerGroupNotFoundException;
 use App\Features\TradingServer\Factories\ServerGroupRepositoryFactory;
@@ -18,10 +19,14 @@ class FindLeverageForServerGroupService
         $this->serverGroupRepository = $serverGroupRepositoryFactory->make();
     }
 
-    public function execute(string $serverGroupId, string $leverageId): Leverage
+    /**
+     * @throws ServerGroupNotFoundException
+     * @throws LeverageNotAssignedToServerGroupException
+     */
+    public function execute(string $serverGroupId, string $leverageId): LeverageDTO
     {
         $serverGroup = $this->serverGroupRepository->findByUuid($serverGroupId)
-            ?? throw new ServerGroupNotFoundException();
+            ?? throw new ServerGroupNotFoundException;
 
         /** @var Leverage|null $leverage */
         $leverage = $serverGroup->leverages()
@@ -29,9 +34,9 @@ class FindLeverageForServerGroupService
             ->first();
 
         if ($leverage === null) {
-            throw new LeverageNotAssignedToServerGroupException();
+            throw new LeverageNotAssignedToServerGroupException;
         }
 
-        return $leverage;
+        return LeverageDTO::from($leverage);
     }
 }

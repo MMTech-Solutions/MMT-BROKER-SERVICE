@@ -39,8 +39,8 @@ class PlatformRepository implements PlatformRepositoryInterface
         return $platform->refresh();
     }
 
-    public function delete(Platform $platform): void
+    public function deleteById(string $id): void
     {
-        $platform->delete();
+        Platform::where('id', $id)->delete();
     }
 }

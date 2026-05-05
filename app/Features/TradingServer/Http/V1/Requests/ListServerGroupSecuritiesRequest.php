@@ -2,6 +2,7 @@
 
 namespace App\Features\TradingServer\Http\V1\Requests;
 
+use App\SharedFeatures\User\UserContext;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -9,6 +10,11 @@ use Illuminate\Validation\Validator;
 
 class ListServerGroupSecuritiesRequest extends FormRequest
 {
+    public function authorize(UserContext $userContext): bool
+    {
+        return $userContext->can('trading_server.read');
+    }
+
     /**
      * @return array<string, mixed>
      */

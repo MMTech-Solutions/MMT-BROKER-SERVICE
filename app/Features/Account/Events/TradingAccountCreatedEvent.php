@@ -15,8 +15,8 @@ class TradingAccountCreatedEvent
         public readonly string $externalTraderId,
         public readonly string $password,
         public readonly string $investorPassword,
-        public readonly string $name,
-        public readonly string $email,
+        public readonly string $userFullName,
+        public readonly string $userEmail,
     )
     {}
 }

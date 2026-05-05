@@ -3,6 +3,7 @@
 namespace App\Features\TradingServer\Http\V1\Requests;
 
 use App\Features\TradingServer\Enums\EnvironmentEnum;
+use App\SharedFeatures\User\UserContext;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Enum;
@@ -10,6 +11,14 @@ use Illuminate\Validation\Validator;
 
 class UpdateTradingServerRequest extends FormRequest
 {
+
+    public function authorize(
+        UserContext $userContext,
+    ): bool
+    {
+        return $userContext->can('trading_server.update');
+    }
+
     /**
      * @return array<string, mixed>
      */

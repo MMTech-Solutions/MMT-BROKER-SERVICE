@@ -2,31 +2,37 @@
 
 namespace App\Features\TradingServer\Http\V1\Requests;
 
+use App\SharedFeatures\User\UserContext;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Validator;
 
 class SyncTradingServerRequest extends FormRequest
 {
+    public function authorize(UserContext $userContext): bool
+    {
+        return $userContext->can('trading_server.sync');
+    }
+    
     public function rules(): array
     {
         return [
-            'platform_setting_id' => 'required|string|exists:platform_settings,id',
+            'trading_server_id' => 'required|string|exists:trading_servers,id',
         ];
     }
-    
+
     public function prepareForValidation(): void
     {
         $this->merge([
-            'platform_setting_id' => $this->route('platform_setting_id'),
+            'trading_server_id' => $this->route('tradingServerUuid'),
         ]);
     }
 
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
-            if (Str::isUuid($this->input('platform_setting_id'))) {
-                $validator->errors()->add('platform_setting_id', 'The platform setting id is not a valid UUID.');
+            if (! Str::isUuid($this->input('trading_server_id'))) {
+                $validator->errors()->add('trading_server_id', 'The trading server id is not a valid UUID.');
             }
         });
     }

@@ -4,7 +4,6 @@ namespace App\Features\Platform\Http\V1\Controllers;
 
 use App\Features\Platform\Http\V1\Commands\StorePlatformCommand;
 use App\Features\Platform\Http\V1\Requests\StorePlatformRequest;
-use App\Features\Platform\Http\V1\Resources\PlatformResource;
 use App\Features\Platform\UseCases\StorePlatformUseCase;
 use Illuminate\Http\JsonResponse;
 use MMT\ApiResponseNormalizer\ApiResponse;
@@ -19,6 +18,6 @@ class StorePlatformController
     ): JsonResponse {
         $platform = $useCase->execute(StorePlatformCommand::fromRequest($request));
 
-        return $this->created((new PlatformResource($platform))->resolve());
+        return $this->created($platform->toArray());
     }
 }

@@ -2,24 +2,25 @@
 
 namespace App\Features\TradingServer\UseCases;
 
+use App\Features\TradingServer\DTOs\TradingServerDTO;
 use App\Features\TradingServer\Exceptions\TradingServerNotFoundException;
 use App\Features\TradingServer\Factories\TradingServerRepositoryFactory;
 use App\Features\TradingServer\Http\V1\Commands\ShowTradingServerCommand;
-use App\Features\TradingServer\Models\TradingServer;
 use App\Features\TradingServer\Repositories\Contracts\TradingServerRepositoryInterface;
 
 class ShowTradingServerUseCase
 {
-    private TradingServerRepositoryInterface $TradingServerRepository;
+    private TradingServerRepositoryInterface $tradingServerRepository;
 
     public function __construct(
-        private readonly TradingServerRepositoryFactory $TradingServerRepositoryFactory,
+        private readonly TradingServerRepositoryFactory $tradingServerRepositoryFactory,
     ) {
-        $this->TradingServerRepository = $TradingServerRepositoryFactory->make();
+        $this->tradingServerRepository = $tradingServerRepositoryFactory->make();
     }
 
-    public function execute(ShowTradingServerCommand $command): TradingServer
+    public function execute(ShowTradingServerCommand $command): TradingServerDTO
     {
-        return $this->TradingServerRepository->findById($command->TradingServerId) ?? throw new TradingServerNotFoundException();
+        $tradingServer = $this->tradingServerRepository->findById($command->TradingServerId) ?? throw new TradingServerNotFoundException();
+        return TradingServerDTO::from($tradingServer);
     }
 }

@@ -3,8 +3,8 @@
 namespace App\Features\TradingServer\Repositories;
 
 use App\Features\TradingServer\Exceptions\UniqueCredentialsException;
-use App\Features\TradingServer\Repositories\Contracts\TradingServerRepositoryInterface;
 use App\Features\TradingServer\Models\TradingServer;
+use App\Features\TradingServer\Repositories\Contracts\TradingServerRepositoryInterface;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -39,17 +39,22 @@ class TradingServerRepository implements TradingServerRepositoryInterface
     {
         try {
             return TradingServer::create($attributes);
-        }
-        catch(UniqueConstraintViolationException $e) {
-            throw new UniqueCredentialsException();
+        } catch (UniqueConstraintViolationException $e) {
+            throw new UniqueCredentialsException;
         }
     }
 
-    public function update(TradingServer $TradingServer, array $attributes): TradingServer
+    public function update(TradingServer $tradingServer, array $attributes): TradingServer
     {
-        $TradingServer->fill($attributes);
-        $TradingServer->save();
+        if (isset($attributes['is_active']) && $attributes['is_active'] === false) {
+            $tradingServer->serverGroups()->update([
+                'is_active' => false,
+            ]);
+        }
 
-        return $TradingServer->refresh();
+        $tradingServer->fill($attributes);
+        $tradingServer->save();
+
+        return $tradingServer->refresh();
     }
 }

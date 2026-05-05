@@ -1,26 +1,35 @@
 <?php
 
 use App\Features\Account\Http\V1\Controllers\CreateAccountController;
+use App\Features\Leverage\Http\V1\Controllers\DeleteLeverageController;
+use App\Features\Leverage\Http\V1\Controllers\ListLeveragesController;
+use App\Features\Leverage\Http\V1\Controllers\ListServerGroupLeveragesController;
+use App\Features\Leverage\Http\V1\Controllers\ShowLeverageController;
+use App\Features\Leverage\Http\V1\Controllers\StoreLeverageController;
+use App\Features\Leverage\Http\V1\Controllers\SynchronizeLeveragesController;
+use App\Features\Leverage\Http\V1\Controllers\UpdateLeverageController;
+use App\Features\Platform\Http\V1\Controllers\DeletePlatformController;
+use App\Features\Platform\Http\V1\Controllers\ListAvailablePlatformsController;
+use App\Features\Platform\Http\V1\Controllers\ListPlatformsController;
+use App\Features\Platform\Http\V1\Controllers\ShowPlatformController;
+use App\Features\Platform\Http\V1\Controllers\StorePlatformController;
+use App\Features\Platform\Http\V1\Controllers\UpdatePlatformController;
+use App\Features\TradingServer\Http\V1\Controllers\DeleteTradingServerController;
+use App\Features\TradingServer\Http\V1\Controllers\ListSecuritiesController;
+use App\Features\TradingServer\Http\V1\Controllers\ListSecuritySymbolsController;
+use App\Features\TradingServer\Http\V1\Controllers\ListServerGroupsController;
+use App\Features\TradingServer\Http\V1\Controllers\ListServerGroupSecuritiesController;
+use App\Features\TradingServer\Http\V1\Controllers\ListSymbolsController;
+use App\Features\TradingServer\Http\V1\Controllers\ListTradingServerEnvironmentsController;
+use App\Features\TradingServer\Http\V1\Controllers\ListTradingServersController;
+use App\Features\TradingServer\Http\V1\Controllers\ShowTradingServerController;
+use App\Features\TradingServer\Http\V1\Controllers\StoreTradingServerController;
+use App\Features\TradingServer\Http\V1\Controllers\SynchronizeTradingServerController;
+use App\Features\TradingServer\Http\V1\Controllers\UpdateTradingServerController;
 use Illuminate\Support\Facades\Route;
-use App\Features\Leverage\Http\V1\Controllers\{
-    DeleteLeverageController, ListLeveragesController, ListServerGroupLeveragesController,
-    ShowLeverageController, StoreLeverageController, SynchronizeLeveragesController,
-    UpdateLeverageController,
-};
-use App\Features\Platform\Http\V1\Controllers\{
-    DeletePlatformController, ListAvailablePlatformsController, ListPlatformsController,
-    ShowPlatformController, StorePlatformController, UpdatePlatformController
-};
-use App\Features\TradingServer\Http\V1\Controllers\{
-    DeleteTradingServerController, InitializeTradingServerController, ListSecuritiesController,
-    ListSecuritySymbolsController, ListServerGroupsController, ListServerGroupSecuritiesController,
-    ListSymbolsController, ListTradingServerEnvironmentsController, ListTradingServersController,
-    ShowTradingServerController, StoreTradingServerController, SynchronizeTradingServerController,
-    UpdateTradingServerController,
-};
 
 Route::prefix('broker')->group(function () {
-    Route::middleware('gateway.auth.user')->prefix('v1')->group(function () {
+    Route::middleware(['rbac.auth.user', 'rbac.bind.gateway.user'])->prefix('v1')->group(function () {
 
         Route::prefix('platforms')->group(function () {
             Route::get('/', ListPlatformsController::class);
@@ -48,8 +57,7 @@ Route::prefix('broker')->group(function () {
             Route::get('/{tradingServerUuid}', ShowTradingServerController::class);
             Route::patch('/{tradingServerUuid}', UpdateTradingServerController::class);
             Route::delete('/{tradingServerUuid}', DeleteTradingServerController::class);
-            Route::post('{tradingServerUuid}/initialization', InitializeTradingServerController::class);
-            Route::post('{tradingServerUuid}/synchronization', SynchronizeTradingServerController::class);
+            Route::post('{tradingServerUuid}/sync', SynchronizeTradingServerController::class);
         });
 
         Route::prefix('leverages')->group(function () {

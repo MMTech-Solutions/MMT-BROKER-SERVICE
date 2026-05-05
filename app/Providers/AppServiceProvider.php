@@ -2,16 +2,21 @@
 
 namespace App\Providers;
 
+use App\SharedFeatures\Exceptions\UnauthenticatedException;
+use App\SharedFeatures\User\UserContext;
+use App\SharedFeatures\User\Connectors\GatewayUserConnector;
 use Illuminate\Support\ServiceProvider;
-use App\SharedFeatures\Application\UserContext;
+use Mmtech\Rbac\Auth\GatewayUser;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
         $this->app->scoped(UserContext::class, function ($app) {
-            $user = $app['request']->attributes->get('user');
-            return new UserContext($user);
+            /** @var GatewayUser */
+            $gatewayUser = auth()->user() ?? throw new UnauthenticatedException();
+            $userConnector = new GatewayUserConnector($gatewayUser);
+            return new UserContext($userConnector);
         });
     }
     

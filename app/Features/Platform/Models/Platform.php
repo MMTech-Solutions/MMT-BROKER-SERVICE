@@ -2,12 +2,13 @@
 
 namespace App\Features\Platform\Models;
 
+use App\Features\Platform\Exceptions\PlatformNotSupportedException as InternalPlatformNotSupportedException;
+use App\Features\TradingServer\Models\TradingServer;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Mmt\TradingServiceSdk\Enums\PlatformEnum;
 use Mmt\TradingServiceSdk\Exceptions\PlatformNotSupportedException;
-use App\Features\Platform\Exceptions\PlatformNotSupportedException as InternalPlatformNotSupportedException;
-
 
 /**
  * @property string $id
@@ -15,7 +16,6 @@ use App\Features\Platform\Exceptions\PlatformNotSupportedException as InternalPl
  * @property string $custom_name
  * @property float $volume_factor
  * @property bool $is_active
- * 
  */
 class Platform extends Model
 {
@@ -35,11 +35,10 @@ class Platform extends Model
         ];
     }
 
-
     /**
      * Converts the platform name to a PlatformEnum
+     *
      * @throws InternalPlatformNotSupportedException
-     * @return PlatformEnum
      */
     public function toEnum(): PlatformEnum
     {
@@ -48,5 +47,10 @@ class Platform extends Model
         } catch (PlatformNotSupportedException $e) {
             throw new InternalPlatformNotSupportedException($e->getMessage());
         }
+    }
+
+    public function tradingServers(): HasMany
+    {
+        return $this->hasMany(TradingServer::class);
     }
 }

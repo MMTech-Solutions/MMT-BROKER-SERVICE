@@ -2,8 +2,8 @@
 
 namespace App\Features\Platform\QueryObjects;
 
-use App\SharedFeatures\Application\UserContext;
 use App\Features\Platform\Models\Platform;
+use App\SharedFeatures\User\UserContext;
 
 class ListPlatformsQuery
 {
@@ -19,7 +19,7 @@ class ListPlatformsQuery
             ->when(($filters['volume_factor'] ?? null) !== null, fn ($query) => $query->where('volume_factor', (int) $filters['volume_factor']))
             ->orderBy('name');
 
-        if($this->userContext->adminCan('platform')) {
+        if($this->userContext->can('platform.edit')) {
             $query->when(array_key_exists('is_active', $filters) && $filters['is_active'] !== null, function ($query) use ($filters) {
                 $query->where('is_active', (bool) $filters['is_active']);
             });

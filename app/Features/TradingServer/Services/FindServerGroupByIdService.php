@@ -2,9 +2,9 @@
 
 namespace App\Features\TradingServer\Services;
 
+use App\Features\TradingServer\DTOs\ServerGroupDTO;
 use App\Features\TradingServer\Exceptions\ServerGroupNotFoundException;
 use App\Features\TradingServer\Factories\ServerGroupRepositoryFactory;
-use App\Features\TradingServer\Models\ServerGroup;
 use App\Features\TradingServer\Repositories\Contracts\ServerGroupRepositoryInterface;
 
 class FindServerGroupByIdService
@@ -17,8 +17,10 @@ class FindServerGroupByIdService
         $this->serverGroupRepository = $serverGroupRepositoryFactory->make();
     }
 
-    public function execute(string $serverGroupId): ServerGroup
+    public function execute(string $serverGroupId): ServerGroupDTO
     {
-        return $this->serverGroupRepository->findByUuid($serverGroupId) ?? throw new ServerGroupNotFoundException();
+        $group = $this->serverGroupRepository->findByUuid($serverGroupId) ?? throw new ServerGroupNotFoundException;
+
+        return ServerGroupDTO::from($group);
     }
 }
