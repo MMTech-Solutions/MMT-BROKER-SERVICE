@@ -11,10 +11,16 @@ use App\Features\Trading\Account\Http\V1\Commands\CreateAccountCommand;
 use App\Features\Trading\Account\Models\Account;
 use App\Features\Trading\Account\QueryObjects\SetInitialBalanceQueryObject;
 use App\Features\Trading\Account\Repositories\Contracts\AccountRepositoryInterface;
+use App\Features\Trading\Leverage\Actions\FindLeverageForServerGroupAction;
+use App\Features\Trading\TradingServer\DTOs\InitialAmountDTO;
+use App\Features\Trading\TradingServer\DTOs\ServerGroupDTO;
 use App\Features\Trading\TradingServer\Enums\EnvironmentEnum;
-use App\Features\Trading\TradingServer\Services\FindInitialAmountByIdService;
-use App\Features\Trading\TradingServer\Services\FindLeverageForServerGroupService;
-use App\Features\Trading\TradingServer\Services\FindServerGroupByIdService;
+use App\Features\Trading\TradingServer\Exceptions\InitialAmountNotFoundException;
+use App\Features\Trading\TradingServer\Exceptions\ServerGroupNotFoundException;
+use App\Features\Trading\TradingServer\Factories\InitialAmountRepositoryFactory;
+use App\Features\Trading\TradingServer\Factories\ServerGroupRepositoryFactory;
+use App\Features\Trading\TradingServer\Repositories\Contracts\InitialAmountRepositoryInterface;
+use App\Features\Trading\TradingServer\Repositories\Contracts\ServerGroupRepositoryInterface;
 use App\SharedFeatures\TradingService\Factories\TradingServiceFactory;
 use App\SharedFeatures\User\User;
 use App\SharedFeatures\User\UserContext;
@@ -31,23 +37,29 @@ class CreateAccountUseCase
 
     protected User $user;
 
+    private ServerGroupRepositoryInterface $serverGroupRepository;
+
+    private InitialAmountRepositoryInterface $initialAmountRepository;
+
     public function __construct(
         private readonly UserContext $userContext,
-        private readonly FindLeverageForServerGroupService $findLeverageForServerGroupService,
+        private readonly FindLeverageForServerGroupAction $findLeverageForServerGroupAction,
         private readonly AccountRepositoryFactory $accountRepositoryFactory,
         private readonly TradingServiceFactory $tradingServiceFactory,
-        private readonly FindServerGroupByIdService $findServerGroupByIdService,
+        private readonly ServerGroupRepositoryFactory $serverGroupRepositoryFactory,
+        private readonly InitialAmountRepositoryFactory $initialAmountRepositoryFactory,
         private readonly CheckAccountLimitsAction $checkAccountLimitsAction,
         private readonly CreateAccountAction $createAccountAction,
-        private readonly FindInitialAmountByIdService $findInitialAmountByIdService,
     ) {
         $this->accountRepository = $accountRepositoryFactory->make();
         $this->user = $userContext->userInfo();
+        $this->serverGroupRepository = $serverGroupRepositoryFactory->make();
+        $this->initialAmountRepository = $initialAmountRepositoryFactory->make();
     }
 
     public function execute(CreateAccountCommand $command)
     {
-        $serverGroup = $this->findServerGroupByIdService->execute($command->serverGroupId);
+        $serverGroup = $this->findServerGroupDto($command->serverGroupId);
 
         $initialAmount = PositiveNumber::zero();
         $balanceType = null;
@@ -63,13 +75,13 @@ class CreateAccountUseCase
                     throw new InvalidAccountOperationException;
                 }
 
-                $initialAmountDTO = $this->findInitialAmountByIdService->execute($command->amountId);
+                $initialAmountDTO = $this->findInitialAmountDto($command->amountId);
                 $initialAmount = $initialAmountDTO->amount;
                 $balanceType = TransactionTypeEnum::BALANCE;
             }
         }
 
-        $leverage = $this->findLeverageForServerGroupService->execute(
+        $leverage = $this->findLeverageForServerGroupAction->execute(
             $command->serverGroupId,
             $command->leverageId
         );
@@ -82,10 +94,10 @@ class CreateAccountUseCase
 
         // TODO Aqui iran mas validaciones, permisos, ib, etc
 
-        //! Incluso en la logica de creacion de cuentas anterior a esta
-        //! no se estaba registrando el balance inicial ni en transacciones
-        //! ni en la cartera del usuario. EL dinero pasa directamente a la cuenta
-        //! de trading.
+        // ! Incluso en la logica de creacion de cuentas anterior a esta
+        // ! no se estaba registrando el balance inicial ni en transacciones
+        // ! ni en la cartera del usuario. EL dinero pasa directamente a la cuenta
+        // ! de trading.
 
         $tradingServiceSession = $this->tradingServiceFactory->make(
             $serverGroup->platform,
@@ -119,6 +131,20 @@ class CreateAccountUseCase
         ));
 
         return $account;
+    }
+
+    private function findServerGroupDto(string $serverGroupId): ServerGroupDTO
+    {
+        $group = $this->serverGroupRepository->findByUuid($serverGroupId) ?? throw new ServerGroupNotFoundException;
+
+        return ServerGroupDTO::from($group);
+    }
+
+    private function findInitialAmountDto(string $id): InitialAmountDTO
+    {
+        $initialAmount = $this->initialAmountRepository->findById($id) ?? throw new InitialAmountNotFoundException;
+
+        return InitialAmountDTO::from($initialAmount);
     }
 
     private function setInitialBalance(
