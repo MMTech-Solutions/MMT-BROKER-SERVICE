@@ -44,7 +44,7 @@
     },
     {
       "key": "RBAC_USERINFO_JSON_EXAMPLE",
-      "value": "{\"sub\":\"b8f4e2a1-3c6d-4e9f-8b2a-7d1e9f4c6a50\",\"email\":\"dev.postman@broker-service.local\",\"name\":\"Postman RBAC Dev User\"}"
+      "value": "{\"sub\":\"b8f4e2a1-3c6d-4e9f-8b2a-7d1e9f4c6a50\",\"email\":\"dev.postman@broker-service.local\",\"name\":\"Postman RBAC Dev User\",\"lastName\":\"Tester\"}"
     },
     {
       "key": "RBAC_USERINFO_BASE64_EXAMPLE",
@@ -79,7 +79,9 @@
           "const userinfo = base64UrlEncodeUtf8(jsonPayload);",
           "",
           "pm.request.headers.upsert({ key: internalHeader, value: internalSecret });",
-          "pm.request.headers.upsert({ key: userinfoHeader, value: userinfo });"
+          "pm.request.headers.upsert({ key: userinfoHeader, value: userinfo });",
+          "pm.request.headers.upsert({ key: 'Accept', value: 'application/json' });",
+          "pm.request.headers.upsert({ key: 'Content-Type', value: 'application/json' });"
         ]
       }
     }
@@ -874,6 +876,57 @@
     {
       "name": "Accounts",
       "item": [
+        {
+          "name": "List Trading Accounts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/broker/v1/accounts",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "broker",
+                "v1",
+                "accounts"
+              ],
+              "query": [
+                {
+                  "key": "external_user_id",
+                  "value": "00000000-0000-0000-0000-000000000010",
+                  "disabled": true
+                },
+                {
+                  "key": "external_trader_id",
+                  "value": "1102",
+                  "disabled": true
+                },
+                {
+                  "key": "server_group_id",
+                  "value": "{{SERVER_GROUP_UUID}}",
+                  "disabled": true
+                },
+                {
+                  "key": "is_active",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
         {
           "name": "Create Account",
           "request": {

@@ -13,7 +13,16 @@ class AccountDTO extends Data
         public string $id,
         public string $externalUserId,
         public string $externalTraderId,
-        public string $password,
-        public string $investorPassword,
+        public string $serverGroupId,
+        public string $leverageId,
+        public float $initialDeposit,
+        public float $currentBalance,
+        public float $currentEquity,
+        public float $currentCredit,
+        public float $margin,
+        public float $freeMargin,
+        public bool $isActive,
+        public bool $isTradingEnabled,
+        public ?string $comments,
     ) {}
 }

@@ -4,6 +4,7 @@ namespace App\Features\Trading\Account\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * 
@@ -22,6 +23,7 @@ use Illuminate\Database\Eloquent\Model;
 class Account extends Model
 {
     use HasUuids;
+    use SoftDeletes;
 
     protected $fillable = [
         'external_user_id',
@@ -39,5 +41,16 @@ class Account extends Model
         'is_active',
         'is_trading_enabled',
         'comments',
+    ];
+
+    protected $casts = [
+        'initial_deposit' => 'float',
+        'current_balance' => 'float',
+        'current_equity' => 'float',
+        'current_credit' => 'float',
+        'margin' => 'float',
+        'free_margin' => 'float',
+        'is_active' => 'boolean',
+        'is_trading_enabled' => 'boolean',
     ];
 }

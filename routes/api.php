@@ -1,6 +1,7 @@
 <?php
 
 use App\Features\Trading\Account\Http\V1\Controllers\CreateAccountController;
+use App\Features\Trading\Account\Http\V1\Controllers\ListTradingAccountsController;
 use App\Features\Trading\Leverage\Http\V1\Controllers\DeleteLeverageController;
 use App\Features\Trading\Leverage\Http\V1\Controllers\ListLeveragesController;
 use App\Features\Trading\Leverage\Http\V1\Controllers\ListServerGroupLeveragesController;
@@ -69,6 +70,7 @@ Route::prefix('broker')->group(function () {
         });
 
         Route::prefix('accounts')->group(function () {
+            Route::get('/', ListTradingAccountsController::class);
             Route::post('/', CreateAccountController::class);
         });
     });
